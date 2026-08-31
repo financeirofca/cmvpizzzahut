@@ -550,7 +550,7 @@
 
   let state = {
     periodo: "",
-    vendas: 0,
+    meta: [],
     entradas: [],
     inicial: [],
     final: []
@@ -559,9 +559,9 @@
   function uid(){ return 'r' + Math.random().toString(36).slice(2,10); }
   function emptyRow(kind){
     if(kind === 'entradas'){
-      return { id: uid(), data:'', nf:'', fornecedor:'', valorTotal:'' };
+      return { id: uid(), data: state.periodo ? state.periodo + '-01' : '', nf:'', fornecedor:'', valorTotal:'' };
     }
-    return { id: uid(), item:'', categoria:CATEGORIAS[0], qtd:'', valorUnit:'' };
+    return { id: uid(), periodo: state.periodo, item:'', categoria:CATEGORIAS[0], qtd:'', valorUnit:'' };
   }
   function fmtBRL(n){
     if(isNaN(n)) n = 0;
@@ -578,6 +578,24 @@
   function normMonth(v){
     const m = String(v || '').match(/^(\d{4}-\d{2})/);
     return m ? m[1] : '';
+  }
+  // Notas Fiscais não têm campo de período próprio: o mês é derivado da data.
+  // Estoque Inicial/Final e Meta (vendas) têm um período por linha, pois
+  // representam um "retrato" diferente a cada mês.
+  function periodoOf(kind, r){
+    return kind === 'entradas' ? normDate(r.data).slice(0, 7) : normMonth(r.periodo);
+  }
+  function currentPeriodRows(kind){
+    return state[kind].filter(r => periodoOf(kind, r) === state.periodo);
+  }
+  function getVendasForPeriod(p){
+    const rec = state.meta.find(m => normMonth(m.periodo) === p);
+    return rec ? rec.vendas : '';
+  }
+  function setVendasForPeriod(p, v){
+    const rec = state.meta.find(m => normMonth(m.periodo) === p);
+    if(rec) rec.vendas = v;
+    else state.meta.push({ periodo: p, vendas: v });
   }
   function rowTotal(r, kind){
     if(kind === 'entradas') return parseFloat(r.valorTotal) || 0;
@@ -600,7 +618,8 @@
 
   function renderEntradas(){
     const tbody = document.querySelector('#table-entradas tbody');
-    tbody.innerHTML = state.entradas.map(r => `
+    const rows = currentPeriodRows('entradas');
+    tbody.innerHTML = rows.map(r => `
       <tr data-id="${r.id}">
         <td><input type="date" data-field="data" value="${normDate(r.data)}"></td>
         <td><input type="text" data-field="nf" value="${r.nf}" placeholder="000000"></td>
@@ -609,12 +628,13 @@
         <td class="remove-cell"><button class="remove-btn" data-remove title="Remover linha">✕</button></td>
       </tr>
     `).join('');
-    document.getElementById('totalEntradas').textContent = fmtBRL(sumRows(state.entradas, 'entradas'));
+    document.getElementById('totalEntradas').textContent = fmtBRL(sumRows(rows, 'entradas'));
   }
 
   function renderStockTable(kind){
     const tbody = document.querySelector(`#table-${kind} tbody`);
-    tbody.innerHTML = state[kind].map(r => `
+    const rows = currentPeriodRows(kind);
+    tbody.innerHTML = rows.map(r => `
       <tr data-id="${r.id}">
         <td><input type="text" data-field="item" list="itensEstoqueList" autocomplete="off" value="${r.item}" placeholder="Buscar item..."></td>
         <td><select data-field="categoria">${categoriaOptions(r.categoria)}</select></td>
@@ -625,15 +645,15 @@
       </tr>
     `).join('');
     const totalId = kind === 'inicial' ? 'totalInicial' : 'totalFinal';
-    document.getElementById(totalId).textContent = fmtBRL(sumRows(state[kind]));
+    document.getElementById(totalId).textContent = fmtBRL(sumRows(rows));
   }
 
   function renderResultado(){
-    const totalEI = sumRows(state.inicial);
-    const totalEF = sumRows(state.final);
-    const totalCompras = sumRows(state.entradas, 'entradas');
+    const totalEI = sumRows(currentPeriodRows('inicial'));
+    const totalEF = sumRows(currentPeriodRows('final'));
+    const totalCompras = sumRows(currentPeriodRows('entradas'), 'entradas');
     const cmv = totalEI + totalCompras - totalEF;
-    const vendas = parseFloat(state.vendas) || 0;
+    const vendas = parseFloat(getVendasForPeriod(state.periodo)) || 0;
 
     document.getElementById('chipEI').textContent = fmtBRL(totalEI);
     document.getElementById('chipCompras').textContent = fmtBRL(totalCompras);
@@ -679,7 +699,7 @@
     renderStockTable('final');
     renderResultado();
     document.getElementById('periodo').value = normMonth(state.periodo);
-    document.getElementById('vendasPeriodo').value = state.vendas || '';
+    document.getElementById('vendasPeriodo').value = getVendasForPeriod(state.periodo) || '';
   }
 
   // ---- events: tables ----
@@ -733,8 +753,9 @@
   document.querySelectorAll('[data-clear]').forEach(btn => {
     btn.addEventListener('click', () => {
       const kind = btn.getAttribute('data-clear');
-      if(!confirm('Remover todos os itens desta tabela?')) return;
-      state[kind] = [emptyRow(kind)];
+      if(!confirm('Remover todos os itens desta tabela no período selecionado?')) return;
+      state[kind] = state[kind].filter(r => periodoOf(kind, r) !== state.periodo);
+      state[kind].push(emptyRow(kind));
       if(kind === 'entradas') renderEntradas(); else renderStockTable(kind);
       renderResultado();
       scheduleSave(kind);
@@ -747,12 +768,13 @@
 
   function exportCSV(kind){
     let headers, rows;
+    const data = currentPeriodRows(kind);
     if(kind === 'entradas'){
       headers = ['Data','Nº NF','Fornecedor','Valor Total'];
-      rows = state.entradas.map(r => [r.data, r.nf, r.fornecedor, rowTotal(r, 'entradas').toFixed(2)]);
+      rows = data.map(r => [r.data, r.nf, r.fornecedor, rowTotal(r, 'entradas').toFixed(2)]);
     } else {
       headers = ['Item','Categoria','Qtde','Valor Unitário','Valor Total'];
-      rows = state[kind].map(r => [r.item, r.categoria, r.qtd, r.valorUnit, rowTotal(r).toFixed(2)]);
+      rows = data.map(r => [r.item, r.categoria, r.qtd, r.valorUnit, rowTotal(r).toFixed(2)]);
     }
     const csv = [headers.join(';'), ...rows.map(r => r.map(v => `"${(v ?? '').toString().replace(/"/g,'""')}"`).join(';'))].join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -777,13 +799,16 @@
   });
 
   // ---- periodo / vendas ----
+  // O período selecionado é local a cada pessoa (não é sincronizado): cada
+  // viewer navega pelos meses de forma independente. Os dados de cada mês
+  // (entradas, estoques e vendas) continuam compartilhados normalmente.
   document.getElementById('periodo').addEventListener('change', (e) => {
     state.periodo = e.target.value;
-    renderResultado();
-    scheduleSave('meta');
+    ensurePeriodRows();
+    renderAll();
   });
   document.getElementById('vendasPeriodo').addEventListener('input', (e) => {
-    state.vendas = e.target.value;
+    setVendasForPeriod(state.periodo, e.target.value);
     renderResultado();
     scheduleSave('meta');
   });
@@ -814,9 +839,7 @@
 
   async function saveSection(section){
     try{
-      const payload = section === 'meta'
-        ? { periodo: state.periodo, vendas: state.vendas }
-        : state[section];
+      const payload = state[section];
       // Content-Type text/plain evita o preflight de CORS que o Apps Script não trata.
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -846,11 +869,10 @@
     try{
       const res = await fetch(API_URL + '?section=' + section);
       const parsed = await res.json();
-      if(parsed.error) return;
+      if(parsed.error || !Array.isArray(parsed)) return;
       if(section === 'meta'){
-        if(parsed.periodo) state.periodo = parsed.periodo;
-        if(parsed.vendas !== undefined && parsed.vendas !== '') state.vendas = parsed.vendas;
-      } else if(Array.isArray(parsed)){
+        state.meta = parsed.filter(r => r && r.periodo);
+      } else {
         // normaliza linhas vindas da planilha (garante que cada linha tenha "id")
         state[section] = parsed
           .filter(r => r && (r.item || r.id))
@@ -872,13 +894,22 @@
   }
 
   function ensureDefaults(){
-    if(!state.entradas || state.entradas.length === 0) state.entradas = [emptyRow('entradas')];
-    if(!state.inicial || state.inicial.length === 0) state.inicial = [emptyRow('inicial')];
-    if(!state.final || state.final.length === 0) state.final = [emptyRow('final')];
+    if(!state.entradas) state.entradas = [];
+    if(!state.inicial) state.inicial = [];
+    if(!state.final) state.final = [];
+    if(!state.meta) state.meta = [];
     if(!state.periodo){
       const now = new Date();
       state.periodo = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
     }
+    ensurePeriodRows();
+  }
+  // Garante que sempre haja pelo menos uma linha editável por tabela no
+  // período selecionado (mesmo que ele ainda não tenha nenhum lançamento).
+  function ensurePeriodRows(){
+    ['entradas','inicial','final'].forEach(kind => {
+      if(currentPeriodRows(kind).length === 0) state[kind].push(emptyRow(kind));
+    });
   }
 
   async function refreshFromServer(showStatus){
@@ -887,9 +918,8 @@
     if(!sectionHasFocus('entradas')) await loadSection('entradas');
     if(!sectionHasFocus('inicial')) await loadSection('inicial');
     if(!sectionHasFocus('final')) await loadSection('final');
-    const periodoFocused = document.activeElement && document.activeElement.id === 'periodo';
     const vendasFocused = document.activeElement && document.activeElement.id === 'vendasPeriodo';
-    if(!periodoFocused && !vendasFocused) await loadSection('meta');
+    if(!vendasFocused) await loadSection('meta');
     ensureDefaults();
     renderAll();
     statusSynced();

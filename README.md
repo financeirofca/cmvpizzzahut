@@ -25,6 +25,18 @@ a cada alteração.
 
 Cada tabela tem botões para **adicionar linha**, **limpar tabela** e **exportar CSV**.
 
+## Período de referência
+
+O campo "Período de referência" no topo filtra o que aparece em todas as abas: Notas Fiscais,
+Estoque Inicial, Estoque Final e o Resultado (incluindo "Vendas do período") mostram **somente
+os lançamentos daquele mês**. Trocar o período não apaga nada — os dados de outros meses
+continuam guardados e reaparecem ao selecioná-los de novo. "Limpar tabela" e "Exportar CSV"
+também agem apenas sobre o mês selecionado.
+
+A seleção de período é local a cada pessoa (não é sincronizada) — cada viewer pode navegar por
+um mês diferente sem afetar o que os outros estão vendo. Os dados de cada mês continuam
+compartilhados normalmente entre todos.
+
 ## Como os dados são salvos
 
 O app não usa banco de dados próprio: cada aba (Entradas / Estoque Inicial / Estoque Final /
