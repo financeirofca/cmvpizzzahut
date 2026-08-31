@@ -16,8 +16,10 @@ a cada alteração.
 
 - **Notas Fiscais (Entradas)** — lançamento das compras do período (uma linha por NF: data,
   nº da NF, fornecedor e valor total da nota).
-- **Estoque Inicial** — inventário de materiais no início do período.
-- **Estoque Final** — inventário de materiais no fim do período.
+- **Estoque Inicial** — inventário de materiais no início do período. O campo "Item" tem busca
+  com autocompletar (baseada em `Itens estoque.xlsx`); ao escolher um item da lista, o "Valor
+  Unit. (R$)" é preenchido automaticamente (mas continua editável, caso o preço tenha mudado).
+- **Estoque Final** — mesma dinâmica da aba Estoque Inicial (busca de item + preço automático).
 - **Resultado CMV** — cupom com o cálculo consolidado e campo opcional de "Vendas do período"
   para calcular % de CMV sobre vendas e margem bruta.
 
@@ -48,6 +50,14 @@ Não há build nem instalação: é um único arquivo HTML.
 - Para compartilhar com a equipe: envie o arquivo `index.html` (por e-mail, Drive, Dropbox
   etc.) — todos que abrirem o arquivo e tiverem acesso à internet vão ler/gravar na mesma
   planilha Google por trás do Apps Script.
+
+## Catálogo de itens e preços
+
+Os itens e valores unitários sugeridos nas abas de estoque vêm de `Itens estoque.xlsx` e estão
+embutidos no `index.html` (constante `ITENS_ESTOQUE`, no `<script>`). Para atualizar preços ou
+adicionar/remover itens, edite essa planilha e depois atualize a constante correspondente no
+`index.html` (não há leitura automática do arquivo — ele fica no projeto só como fonte de
+referência).
 
 ## Histórico
 

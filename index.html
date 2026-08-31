@@ -410,6 +410,7 @@
     <button class="btn ghost" id="refreshBtn" style="margin-left:10px; padding:4px 12px; font-size:0.72rem;">🔄 Atualizar agora</button>
     <span id="syncTime" style="margin-left:8px; opacity:0.7;"></span>
   </footer>
+  <datalist id="itensEstoqueList"></datalist>
 </div>
 
 <script>
@@ -422,6 +423,129 @@
   // ============================================================
 
   const CATEGORIAS = ["Massas/Farinhas","Molhos","Queijos","Carnes/Frios","Vegetais","Bebidas","Embalagens","Descartáveis","Limpeza","Outros"];
+
+  // Valor unitário de referência por item, conforme "Itens estoque.xlsx"
+  const ITENS_ESTOQUE = {
+    "ACUCAR REF GUARANI SACHE 5G UN": 0.07,
+    "AGUA MIN C/ GAS PET 500ML (MASTER) UN": 1.53,
+    "AGUA MIN S/ GAS PET 500ML (MASTER) UN": 1.36,
+    "ALHO FRITO (MASTER) KG": 59.99,
+    "AZEITE SACHET (MASTER) UN": 0.53,
+    "AZEITONA VERDE (MASTER) KG": 32.65,
+    "BACON FATIADO (MASTER) KG": 64.86,
+    "BASE BRIGADEIRO (MASTER) KG": 38.03,
+    "BATATA (MASTER) KG": 20.79,
+    "BOBINA TERMICA UN": 3.14,
+    "CAIXA 14,5 (MASTER) UN": 2.87,
+    "CAIXA DEL 12 (MASTER) UN": 2.24,
+    "CAIXA DEL SLIDER (MASTER) UN": 0.74,
+    "CAIXA MY BOX G (MASTER) UN": 2.40,
+    "CAIXA PAP 7 UN": 1.73,
+    "CALABRESA (MASTER) KG": 23.27,
+    "CANELA EM PO (MASTER) KG": 76.18,
+    "CANUDO (MASTER) UN": 0.08,
+    "CARTUCHO BANDEJA BATATA (MASTER) UN": 0.25,
+    "CEBOLA (MASTER) KG": 6.36,
+    "CHA ICE TEA LIMAO (MASTER) UN": 2.96,
+    "CHA ICE TEA PESSEGO (MASTER) UN": 2.89,
+    "CHOC KITKAT 4FING AO LEITE 24X41,5G UN": 3.63,
+    "CHOCOLATE GRANULADO (MASTER) KG": 16.47,
+    "COGUMELO FATIADO KG": 35.21,
+    "COLHER SOBREMESA (MASTER) UN": 0.23,
+    "CONCENTRADO TOMATE (MASTER) KG": 15.81,
+    "COND MOLHO BREADSTICK KG": 39.59,
+    "CONJUNTO TALHER (MASTER) UN": 0.77,
+    "COPO 440ML (MASTER) UN": 0.23,
+    "COXINHA DA ASA (MASTER) KG": 33.10,
+    "CREAM CHEESE (MASTER) KG": 25.79,
+    "CRUMBLE PREP CARNE (MASTER) KG": 31.27,
+    "DOCE DE LEITE (MASTER) KG": 37.60,
+    "FARINHA (MASTER) KG": 3.55,
+    "FUNDO DE BANDEJA (MASTER) UN": 0.10,
+    "GARLIC TOPPING KG": 43.71,
+    "GAS CARBONICO (MASTER) KG": 37.66,
+    "GORDURA VEG CUKIN KG": 21.40,
+    "GUARDANAPO SACHE (MASTER) UN": 0.09,
+    "KETCHUP SACHE (MASTER) UN": 0.10,
+    "LACRE SEGURANCA (MASTER) UN": 0.05,
+    "LAMINA PARA MELTS 40X25 (MASTER) UN": 0.47,
+    "LASANHA LISA DBENTA KG": 8.86,
+    "LUVA VINIL SEM PO (MASTER) UN": 0.24,
+    "MACARRAO PENE D BENTA KG": 5.02,
+    "MAIONESE JUNIOR 8G UN": 0.11,
+    "MANJERICAO (MASTER) KG": 342.45,
+    "MILHO (MASTER) KG": 22.39,
+    "MOLHO BARBECUE (MASTER) KG": 11.44,
+    "MOLHO CHEDDAR MELT KG": 27.11,
+    "MOLHO SABOR CHEDDAR KG": 26.08,
+    "MOSTARDA SACHE (MASTER) UN": 0.11,
+    "MUSSARELA (MASTER) KG": 115.62,
+    "MUSSARELA PALITO KG": 35.33,
+    "NUTELLA KG": 62.71,
+    "OLEO 900ML (MASTER) L": 8.79,
+    "OREGANO FLOCOS KG": 57.54,
+    "PARMESAO RAL GOSSO KG": 64.48,
+    "PARMESAO RALADO FINO KG": 70.90,
+    "PEITO DE FRANGO (MASTER) KG": 28.67,
+    "PH EMBALAGEM TO GO MASSAS UN": 1.21,
+    "PH GRATINADEIRA LASANHA 800ML UN": 1.22,
+    "PH PREP DESCARTAVEL INDIV UN": 1.24,
+    "PH PREP PIZZA DOCE DE LEITE IND UN": 4.98,
+    "PIMENTAO (MASTER) KG": 22.55,
+    "POTE P/ MOLHO 50ML UN": 0.32,
+    "PREP BATCH MASSA PAN KG": 13.24,
+    "PREP MISTURA CANELA E ACUCAR KG": 23.89,
+    "PREP MIX VEGETAIS KG": 15.84,
+    "PREP MOLHO CONCENT TOMATE UPS DILUIDO KG": 9.16,
+    "PRESUNTO COZIDO KG": 24.96,
+    "PROTETOR CAIXA MY BOX G UN": 0.43,
+    "PROTETOR PIZZA 12 (MASTER) UN": 0.30,
+    "PROTETOR PIZZA 14,5 (MASTER) UN": 0.48,
+    "PROTETOR PIZZA 7 UN": 0.14,
+    "PROVOLONE (MASTER) KG": 72.52,
+    "RECHEIO E COBERT NPRO KITKAT 6X1,01KG KG": 281.35,
+    "REFRI COCA COLA BAG (MASTER) L": 22.06,
+    "REFRI COCA COLA LATA (MASTER) UN": 10.87,
+    "REFRI COCA COLA PET 1,5L UN": 20.97,
+    "REFRI COCA COLA PET 2L UN": 24.08,
+    "REFRI COCA COLA PET 2L ZERO UN": 23.46,
+    "REFRI COCA COLA PET 600ML UN": 3.76,
+    "REFRI COCA COLA SEM ACUCAR LATA (MASTER) UN": 8.16,
+    "REFRI COCA COLA ZERO BAG L": 22.06,
+    "REFRI COCA COLA ZERO PET 1,5L UN": 13.98,
+    "REFRI FANTA GUARANA BAG (MASTER) L": 44.13,
+    "REFRI FANTA GUARANA LATA (MASTER) UN": 9.28,
+    "REFRI FANTA GUARANA PET 2L UN": 12.11,
+    "REFRI FANTA GUARANA ZERO 350ML UN": 6.96,
+    "REFRI FANTA LARANJA BAG (MASTER) L": 22.06,
+    "REFRI FANTA LARANJA LATA (MASTER) UN": 6.94,
+    "REFRI FANTA LARANJA PET 1,5L UN": 5.44,
+    "REFRI FANTA UVA LATA 350ML UN": 4.62,
+    "REFRI FANTA UVA PET 2L UN": 6.96,
+    "REFRI SPRITE LATA (MASTER) UN": 4.62,
+    "REFRI SPRITE PET 2LT UN": 42.00,
+    "REFRI SPRITE ZERO BAG (MASTER) L": 22.06,
+    "REQUEIJAO (MASTER) KG": 48.78,
+    "ROTULO TIPO A (MASTER) UN": 0.03,
+    "SACHE OREGANO UN": 0.13,
+    "SACHE PIMENTA VERMELHA UN": 0.11,
+    "SACO P/ TALHER UN": 0.04,
+    "SACOLA P/ DELIVERY UN": 0.21,
+    "SAL SACHET 8G UN": 0.01,
+    "SALAME PEPPERONI FAT KG": 228.31,
+    "SUCO DV GOIABA SEM ACUCAR LATA 290ML UN": 2.96,
+    "SUCO DV PESSEGO LATA 290ML UN": 9.53,
+    "SUCO DV UVA LATA 290ML UN": 9.42,
+    "SUCO MARACUJA LATA (MASTER) UN": 9.66,
+    "SUPORTE LID (MASTER) UN": 1.06,
+    "TAMPA COPO 440/550ML (MASTER) UN": 0.11,
+    "TAMPA POTE MOLHO 50ML UN": 0.71,
+    "TOMATE (MASTER) KG": 37.41,
+    "TORT TRIGO CONG 13 UN": 4.48,
+    "TOUCA DESCARTAVEL TNT SANFONADA UN": 0.34,
+    "YGB PAN CX 36X260G 9,36KG KG": 179.67,
+    "YGB TRADICIONAL DB 11856-8 CX 10,350K KG": 53.09
+  };
   const SECTIONS = ["entradas","inicial","final","meta"];
 
   let state = {
@@ -457,6 +581,11 @@
     return CATEGORIAS.map(c => `<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('');
   }
 
+  function populateItensDatalist(){
+    const list = document.getElementById('itensEstoqueList');
+    list.innerHTML = Object.keys(ITENS_ESTOQUE).map(item => `<option value="${item}"></option>`).join('');
+  }
+
   function renderEntradas(){
     const tbody = document.querySelector('#table-entradas tbody');
     tbody.innerHTML = state.entradas.map(r => `
@@ -475,7 +604,7 @@
     const tbody = document.querySelector(`#table-${kind} tbody`);
     tbody.innerHTML = state[kind].map(r => `
       <tr data-id="${r.id}">
-        <td><input type="text" data-field="item" value="${r.item}" placeholder="Nome do material"></td>
+        <td><input type="text" data-field="item" list="itensEstoqueList" autocomplete="off" value="${r.item}" placeholder="Buscar item..."></td>
         <td><select data-field="categoria">${categoriaOptions(r.categoria)}</select></td>
         <td class="num"><input type="number" min="0" step="0.01" data-field="qtd" value="${r.qtd}" placeholder="0"></td>
         <td class="num"><input type="number" min="0" step="0.01" data-field="valorUnit" value="${r.valorUnit}" placeholder="0,00"></td>
@@ -552,6 +681,11 @@
       const row = state[kind].find(r => r.id === id);
       if(!row) return;
       row[field] = e.target.value;
+      if(field === 'item' && Object.prototype.hasOwnProperty.call(ITENS_ESTOQUE, e.target.value)){
+        row.valorUnit = ITENS_ESTOQUE[e.target.value];
+        const valorUnitInput = tr.querySelector('[data-field="valorUnit"]');
+        if(valorUnitInput) valorUnitInput.value = row.valorUnit;
+      }
       const totalCell = tr.querySelector('.total-cell');
       if(totalCell) totalCell.textContent = fmtBRL(rowTotal(row, kind));
       const totalId = kind === 'entradas' ? 'totalEntradas' : (kind === 'inicial' ? 'totalInicial' : 'totalFinal');
@@ -765,6 +899,7 @@
   }
 
   async function init(){
+    populateItensDatalist();
     if(!isConfigured){
       showConfigBanner();
       ensureDefaults();
