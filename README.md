@@ -14,12 +14,12 @@ a cada alteração.
 
 ## Abas
 
-- **Notas Fiscais (Entradas)** — lançamento das compras de insumos do período (uma linha por
-  item de NF: data, nº da NF, fornecedor, item, categoria, quantidade, valor unitário).
+- **Notas Fiscais (Entradas)** — lançamento das compras do período (uma linha por NF: data,
+  nº da NF, fornecedor e valor total da nota).
 - **Estoque Inicial** — inventário de materiais no início do período.
 - **Estoque Final** — inventário de materiais no fim do período.
-- **Resultado CMV** — cupom com o cálculo consolidado, campo opcional de "Vendas do período"
-  para calcular % de CMV sobre vendas e margem bruta, e o custo médio de reposição.
+- **Resultado CMV** — cupom com o cálculo consolidado e campo opcional de "Vendas do período"
+  para calcular % de CMV sobre vendas e margem bruta.
 
 Cada tabela tem botões para **adicionar linha**, **limpar tabela** e **exportar CSV**.
 
