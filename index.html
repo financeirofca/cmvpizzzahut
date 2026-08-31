@@ -567,6 +567,18 @@
     if(isNaN(n)) n = 0;
     return n.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
   }
+  // O Google Sheets às vezes converte datas digitadas em células do tipo Data,
+  // que voltam da planilha como "2026-08-30T03:00:00.000Z" em vez de "2026-08-30".
+  // Os inputs type="date"/"month" ignoram silenciosamente valores fora do formato
+  // exato, então normalizamos antes de atribuir.
+  function normDate(v){
+    const m = String(v || '').match(/^(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : '';
+  }
+  function normMonth(v){
+    const m = String(v || '').match(/^(\d{4}-\d{2})/);
+    return m ? m[1] : '';
+  }
   function rowTotal(r, kind){
     if(kind === 'entradas') return parseFloat(r.valorTotal) || 0;
     const q = parseFloat(r.qtd) || 0;
@@ -590,7 +602,7 @@
     const tbody = document.querySelector('#table-entradas tbody');
     tbody.innerHTML = state.entradas.map(r => `
       <tr data-id="${r.id}">
-        <td><input type="date" data-field="data" value="${r.data}"></td>
+        <td><input type="date" data-field="data" value="${normDate(r.data)}"></td>
         <td><input type="text" data-field="nf" value="${r.nf}" placeholder="000000"></td>
         <td><input type="text" data-field="fornecedor" value="${r.fornecedor}" placeholder="Fornecedor"></td>
         <td class="num"><input type="number" min="0" step="0.01" data-field="valorTotal" value="${r.valorTotal}" placeholder="0,00"></td>
@@ -655,7 +667,7 @@
   }
 
   function formatPeriodo(v){
-    const [y,m] = v.split('-');
+    const [y,m] = normMonth(v).split('-');
     const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
     const idx = parseInt(m,10) - 1;
     return meses[idx] ? `${meses[idx]}/${y}` : v;
@@ -666,7 +678,7 @@
     renderStockTable('inicial');
     renderStockTable('final');
     renderResultado();
-    document.getElementById('periodo').value = state.periodo || '';
+    document.getElementById('periodo').value = normMonth(state.periodo);
     document.getElementById('vendasPeriodo').value = state.vendas || '';
   }
 
