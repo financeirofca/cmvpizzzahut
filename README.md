@@ -46,8 +46,11 @@ Google. Isso é o que permite que **várias pessoas abram o mesmo `index.html` e
 mesmos dados**, como se fosse compartilhado por link:
 
 - Ao editar qualquer campo, o app salva automaticamente ~0,6s depois (debounce).
-- A cada 20s, se a aba do navegador estiver visível, o app busca atualizações do servidor
-  (sem sobrescrever uma tabela em que a pessoa esteja digitando no momento).
+- A cada 20s, se a aba do navegador estiver visível, o app busca atualizações do servidor —
+  mas nunca recarrega uma aba que ainda tem alterações não confirmadas pelo servidor, para
+  não sobrescrever o que a pessoa acabou de digitar com uma leitura desatualizada.
+- Se a pessoa trocar de aba/app logo depois de digitar, o app força o salvamento na hora em
+  vez de esperar o debounce.
 - O rodapé mostra o horário da última sincronização, ou um aviso se o salvamento falhar
   (verifique a conexão e se a URL do Apps Script ainda está publicada).
 
