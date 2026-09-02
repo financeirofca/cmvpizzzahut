@@ -406,7 +406,8 @@
   </main>
 
   <footer>
-    <span id="saveStatus">Dados compartilhados — visíveis e editáveis por qualquer pessoa com este link</span>
+    <button class="btn primary" id="saveBtn" style="padding:7px 16px; font-size:0.8rem;">✓ Tudo salvo</button>
+    <span id="saveStatus" style="margin-left:10px;">Dados compartilhados — visíveis e editáveis por qualquer pessoa com este link</span>
     <button class="btn ghost" id="refreshBtn" style="margin-left:10px; padding:4px 12px; font-size:0.72rem;">🔄 Atualizar agora</button>
     <span id="syncTime" style="margin-left:8px; opacity:0.7;"></span>
   </footer>
@@ -826,6 +827,12 @@
   // vezes não salvar o valor).
   let dirty = {};
   let editVersion = {};
+  // TRAVA DE SEGURANÇA: cada seção só pode ser salva depois de ter sido lida
+  // com sucesso do servidor pelo menos uma vez. Sem isso, uma falha de leitura
+  // (queda de rede, erro momentâneo do Apps Script) deixava o app com a lista
+  // vazia e o próximo salvamento — que reescreve a aba inteira — apagava todos
+  // os lançamentos já gravados. Foi o que causou a perda das notas de julho.
+  let loaded = {};
   function statusSaving(){
     document.getElementById('saveStatus').textContent = 'Salvando alterações...';
   }
@@ -836,17 +843,36 @@
   function statusError(msg){
     document.getElementById('saveStatus').textContent = msg || 'Não foi possível salvar agora — verifique sua conexão';
   }
+  function statusBlocked(){
+    document.getElementById('saveStatus').textContent =
+      '⚠ Não foi possível carregar os dados — edições NÃO estão sendo salvas. Clique em "Atualizar agora" ou recarregue a página.';
+  }
+  function hasPendingChanges(){
+    return Object.keys(dirty).some(s => dirty[s]);
+  }
+  function updateSaveButton(){
+    const btn = document.getElementById('saveBtn');
+    if(!btn) return;
+    const pending = hasPendingChanges();
+    btn.disabled = !pending;
+    btn.textContent = pending ? '💾 Salvar agora' : '✓ Tudo salvo';
+  }
 
   function scheduleSave(section){
     if(!isConfigured) return;
     editVersion[section] = (editVersion[section] || 0) + 1;
     dirty[section] = true;
+    updateSaveButton();
+    // Bloqueia o salvamento enquanto a seção não tiver sido carregada com
+    // sucesso — salvar aqui sobrescreveria a planilha com um estado vazio.
+    if(!loaded[section]){ statusBlocked(); return; }
     statusSaving();
     clearTimeout(saveTimers[section]);
     saveTimers[section] = setTimeout(() => saveSection(section), 600);
   }
 
   async function saveSection(section){
+    if(!loaded[section]){ statusBlocked(); return; }
     const myVersion = editVersion[section];
     const payload = state[section];
     try{
@@ -862,18 +888,31 @@
       // salvamento estava em andamento; senão o próximo scheduleSave (já
       // agendado) cuida de reenviar a versão mais recente.
       if(myVersion === editVersion[section]) dirty[section] = false;
+      updateSaveButton();
       statusSynced();
     }catch(err){
-      statusError('Não foi possível salvar — verifique sua conexão ou a URL configurada');
+      statusError('Não foi possível salvar — verifique sua conexão. Suas alterações continuam na tela; clique em "Salvar agora" para tentar de novo.');
       console.error('Erro ao salvar na planilha:', err);
     }
   }
 
+  // Salva imediatamente tudo que estiver pendente (botão "Salvar agora").
+  async function saveAllPending(){
+    const pendentes = Object.keys(dirty).filter(s => dirty[s]);
+    if(pendentes.length === 0) return;
+    pendentes.forEach(s => clearTimeout(saveTimers[s]));
+    for(const s of pendentes) await saveSection(s);
+    updateSaveButton();
+  }
+
+  // Retorna true só quando a leitura foi bem-sucedida. O chamador usa isso
+  // para liberar (ou não) o salvamento daquela seção — ver "loaded".
   async function loadSection(section){
     try{
       const res = await fetch(API_URL + '?section=' + section);
+      if(!res.ok) throw new Error('HTTP ' + res.status);
       const parsed = await res.json();
-      if(parsed.error || !Array.isArray(parsed)) return;
+      if(parsed.error || !Array.isArray(parsed)) throw new Error(parsed.error || 'resposta inesperada');
       if(section === 'meta'){
         state.meta = parsed.filter(r => r && r.periodo);
       } else {
@@ -882,19 +921,23 @@
           .filter(r => r && (r.item || r.id))
           .map(r => ({ ...r, id: r.id || uid() }));
       }
+      loaded[section] = true;
+      return true;
     }catch(err){
       console.error('Erro ao carregar seção "' + section + '":', err);
+      return false;
     }
   }
 
   async function loadAll(){
-    if(!isConfigured) return;
-    await Promise.all([
+    if(!isConfigured) return false;
+    const results = await Promise.all([
       loadSection('entradas'),
       loadSection('inicial'),
       loadSection('final'),
       loadSection('meta')
     ]);
+    return results.every(Boolean);
   }
 
   function ensureDefaults(){
@@ -922,16 +965,39 @@
     // Nunca recarrega uma seção com alterações ainda não confirmadas pelo
     // servidor — senão uma leitura desatualizada podia chegar antes do
     // salvamento terminar e apagar o que a pessoa acabou de digitar.
-    if(!dirty['entradas']) await loadSection('entradas');
-    if(!dirty['inicial']) await loadSection('inicial');
-    if(!dirty['final']) await loadSection('final');
-    if(!dirty['meta']) await loadSection('meta');
+    let okAll = true;
+    for(const s of ['entradas','inicial','final','meta']){
+      if(dirty[s]) continue;
+      const ok = await loadSection(s);
+      if(!ok) okAll = false;
+    }
     ensureDefaults();
-    renderAll();
-    statusSynced();
+    // Não redesenha a tela enquanto a pessoa está digitando: o redesenho
+    // recria os campos e faria o texto em andamento voltar ao último valor
+    // salvo (foi assim que o nome do fornecedor ficou pela metade).
+    if(!isEditingField()) renderAll();
+    if(okAll){ hideLoadErrorBanner(); if(!hasPendingChanges()) statusSynced(); }
+    else { showLoadErrorBanner(); statusBlocked(); }
+    updateSaveButton();
+  }
+
+  // true quando o foco está num campo editável das tabelas/formulário
+  function isEditingField(){
+    const a = document.activeElement;
+    if(!a) return false;
+    const tag = (a.tagName || '').toLowerCase();
+    return tag === 'input' || tag === 'select' || tag === 'textarea';
   }
 
   document.getElementById('refreshBtn').addEventListener('click', () => refreshFromServer(true));
+  document.getElementById('saveBtn').addEventListener('click', () => saveAllPending());
+
+  // Avisa se a pessoa tentar fechar/sair com algo ainda não salvo.
+  window.addEventListener('beforeunload', (e) => {
+    if(!hasPendingChanges()) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
 
   // Sincroniza automaticamente a cada 20s (só quando a aba está visível)
   setInterval(() => {
@@ -957,6 +1023,19 @@
     document.getElementById('saveStatus').textContent = 'Modo local — configure a URL da planilha para compartilhar';
   }
 
+  function showLoadErrorBanner(){
+    if(document.getElementById('loadErrorBanner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'loadErrorBanner';
+    banner.style.cssText = 'background:#c0261f;color:#fff;padding:12px 18px;border-radius:10px;margin-bottom:14px;font-size:0.85rem;line-height:1.5;';
+    banner.innerHTML = '<strong>Não foi possível carregar os dados da planilha.</strong> Para proteger os lançamentos já gravados, o salvamento está <strong>bloqueado</strong> — nada que você digitar agora será salvo. Verifique sua conexão e clique em <strong>“🔄 Atualizar agora”</strong> (ou recarregue a página) até esta mensagem sumir.';
+    document.querySelector('.app').insertBefore(banner, document.querySelector('.summary-strip'));
+  }
+  function hideLoadErrorBanner(){
+    const b = document.getElementById('loadErrorBanner');
+    if(b) b.remove();
+  }
+
   async function init(){
     populateItensDatalist();
     if(!isConfigured){
@@ -965,10 +1044,12 @@
       renderAll();
       return;
     }
-    await loadAll();
+    const ok = await loadAll();
     ensureDefaults();
     renderAll();
-    statusSynced();
+    updateSaveButton();
+    if(ok){ hideLoadErrorBanner(); statusSynced(); }
+    else { showLoadErrorBanner(); statusBlocked(); }
   }
 
   init();

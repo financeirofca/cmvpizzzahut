@@ -45,7 +45,18 @@ Meta) é lida e gravada via `fetch` num **Google Apps Script Web App** já publi
 Google. Isso é o que permite que **várias pessoas abram o mesmo `index.html` e vejam/editem os
 mesmos dados**, como se fosse compartilhado por link:
 
-- Ao editar qualquer campo, o app salva automaticamente ~0,6s depois (debounce).
+- Ao editar qualquer campo, o app salva automaticamente ~0,6s depois (debounce). O botão
+  **"Salvar agora"** no rodapé força o salvamento imediato e mostra se há algo pendente
+  ("💾 Salvar agora") ou se está tudo gravado ("✓ Tudo salvo"). Se você tentar fechar a página
+  com algo pendente, o navegador avisa antes de sair.
+- **Trava de segurança:** cada aba só pode ser salva depois de ter sido lida com sucesso do
+  servidor. Se a leitura falhar (queda de conexão, erro momentâneo do Apps Script), aparece um
+  aviso vermelho e o salvamento fica **bloqueado**. Isso existe porque o salvamento reescreve a
+  aba inteira: sem a trava, uma falha de leitura deixava o app com a lista vazia e o próximo
+  salvamento apagava todos os lançamentos já gravados.
+- **Backup automático:** antes de cada gravação, o Apps Script copia o conteúdo anterior da aba
+  para a aba `_Backup` da planilha (com data/hora e a linha em JSON, mantendo as últimas ~5000
+  linhas). Serve como rede de segurança para recuperar dados sobrescritos por engano.
 - A cada 20s, se a aba do navegador estiver visível, o app busca atualizações do servidor —
   mas nunca recarrega uma aba que ainda tem alterações não confirmadas pelo servidor, para
   não sobrescrever o que a pessoa acabou de digitar com uma leitura desatualizada.
