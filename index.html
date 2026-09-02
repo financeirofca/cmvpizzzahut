@@ -222,6 +222,7 @@
     <div class="period-control">
       <label for="periodo">Período de referência</label>
       <input type="month" id="periodo">
+      <span id="mesesComDados" style="font-size:0.7rem; color:rgba(255,255,255,0.85); margin-top:4px; text-align:right;"></span>
     </div>
   </header>
 
@@ -701,6 +702,23 @@
     renderResultado();
     document.getElementById('periodo').value = normMonth(state.periodo);
     document.getElementById('vendasPeriodo').value = getVendasForPeriod(state.periodo) || '';
+    renderMesesComDados();
+  }
+
+  // Mostra quais meses já têm lançamentos, para não parecer que os dados
+  // sumiram quando o mês selecionado está vazio.
+  function renderMesesComDados(){
+    const el = document.getElementById('mesesComDados');
+    if(!el) return;
+    const meses = new Set();
+    ['entradas','inicial','final'].forEach(kind => {
+      (state[kind] || []).forEach(r => {
+        const p = periodoOf(kind, r);
+        if(p && rowTotal(r, kind) > 0) meses.add(p);
+      });
+    });
+    const lista = Array.from(meses).sort();
+    el.textContent = lista.length ? 'Com lançamentos: ' + lista.map(formatPeriodo).join(' · ') : '';
   }
 
   // ---- events: tables ----
@@ -940,15 +958,32 @@
     return results.every(Boolean);
   }
 
+  function mesAtual(){
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  }
+  // Período inicial: o mês atual, se ele já tiver lançamentos; senão, o mês
+  // mais recente que tenha algum dado. Abrir num mês vazio dava a impressão
+  // de que os lançamentos anteriores tinham desaparecido.
+  function periodoInicial(){
+    const atual = mesAtual();
+    const meses = new Set();
+    ['entradas','inicial','final'].forEach(kind => {
+      (state[kind] || []).forEach(r => {
+        const p = periodoOf(kind, r);
+        if(p && rowTotal(r, kind) > 0) meses.add(p);
+      });
+    });
+    if(meses.has(atual) || meses.size === 0) return atual;
+    return Array.from(meses).sort().pop();
+  }
+
   function ensureDefaults(){
     if(!state.entradas) state.entradas = [];
     if(!state.inicial) state.inicial = [];
     if(!state.final) state.final = [];
     if(!state.meta) state.meta = [];
-    if(!state.periodo){
-      const now = new Date();
-      state.periodo = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    }
+    if(!state.periodo) state.periodo = periodoInicial();
     ensurePeriodRows();
   }
   // Garante que sempre haja pelo menos uma linha editável por tabela no
