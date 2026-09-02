@@ -721,7 +721,7 @@
       const totalCell = tr.querySelector('.total-cell');
       if(totalCell) totalCell.textContent = fmtBRL(rowTotal(row, kind));
       const totalId = kind === 'entradas' ? 'totalEntradas' : (kind === 'inicial' ? 'totalInicial' : 'totalFinal');
-      document.getElementById(totalId).textContent = fmtBRL(sumRows(state[kind], kind));
+      document.getElementById(totalId).textContent = fmtBRL(sumRows(currentPeriodRows(kind), kind));
       renderResultado();
       scheduleSave(kind);
     });
