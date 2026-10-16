@@ -1478,6 +1478,8 @@
   }
 
   // ---------- helpers de tela ----------
+  // diferença com sinal; valores que arredondam para zero não mostram sinal (evita "-R$ 0,00")
+  const wkDiffTxt = (d) => { const v = Math.abs(d) < 0.005 ? 0 : d; return (v > 0 ? "+" : "") + fmtBRL(v); };
   function rateLabel(r){
     if(r.value === null) return "";
     return (r.src === "real" ? "CMV % real do mês de " : "CMV % meta de ") + wkFmtPct(r.value);
@@ -1570,14 +1572,14 @@
         else if(x.estDiff === null){ ed.textContent = ""; ed.className = "est-diff"; }
         else {
           const d = x.estDiff;
-          ed.textContent = "Contado − estimado: " + (d > 0.005 ? "+" : "") + fmtBRL(d) + (d > 0.005 ? " (sobra)" : d < -0.005 ? " (falta)" : "");
+          ed.textContent = "Contado − estimado: " + wkDiffTxt(d) + (d > 0.005 ? " (sobra)" : d < -0.005 ? " (falta)" : "");
           ed.className = "est-diff " + (d > 0.005 ? "pos" : d < -0.005 ? "neg" : "");
         }
       }
     });
     wkSetText("mest", m.estEf === null ? "—" : fmtBRL(m.estEf));
     const mestEl = wk$("mest"); if(mestEl) mestEl.title = m.estEf === null ? "Sem estimativa: " + m.estWhy : "";
-    wkSetText("mestdiff", m.estDiff === null ? "—" : (m.estDiff > 0.005 ? "+" : "") + fmtBRL(m.estDiff) + (m.estDiff > 0.005 ? " (sobra)" : m.estDiff < -0.005 ? " (falta)" : ""));
+    wkSetText("mestdiff", m.estDiff === null ? "—" : wkDiffTxt(m.estDiff) + (m.estDiff > 0.005 ? " (sobra)" : m.estDiff < -0.005 ? " (falta)" : ""));
     const mdEl = wk$("mestdiff"); if(mdEl){ mdEl.classList.toggle("neg", m.estDiff !== null && m.estDiff < -0.005); mdEl.classList.toggle("pos", m.estDiff !== null && m.estDiff > 0.005); }
     const mn = wk$("metaNote");
     if(mn){
@@ -1633,7 +1635,7 @@
     if(se){
       se.textContent = wx.est === null ? "Estoque final estimado da S" + k + ": indisponível (" + wx.estWhy + ")."
         : "Estoque final estimado da S" + k + ": " + fmtBRL(wx.est) + " (estoque no início da semana + compras − vendas × " + rateLabel(c.rate) + ")." +
-          (wx.estDiff !== null ? " Contado − estimado: " + (wx.estDiff > 0.005 ? "+" : "") + fmtBRL(wx.estDiff) + "." : "");
+          (wx.estDiff !== null ? " Contado − estimado: " + wkDiffTxt(wx.estDiff) + "." : "");
     }
 
     const bad = !(semOk.sem_estoque && semOk.sem_vendas);
