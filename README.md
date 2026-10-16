@@ -52,6 +52,19 @@ CMV da semana = Estoque inicial + Compras da semana − Estoque final da semana
   já fechadas em sequência. O CMV % e a margem só aparecem quando há vendas: o campo mensal da
   aba Resultado CMV, ou a soma das vendas semanais (campo "Vendas" de cada cartão).
 - Cada cartão mostra a variação do CMV % contra a semana anterior (em pontos percentuais).
+- **Estoque final estimado:** referência calculada sem contagem, a partir do campo **CMV % meta**
+  (no topo do Resumo Semanal; vale para o mês e, se ficar em branco, herda o do mês anterior):
+
+  ```
+  estoque final estimado da semana = estoque no início da semana + compras − (vendas da semana × CMV % meta)
+  estoque final estimado do mês    = estoque inicial + compras do mês − (vendas do mês × CMV % meta)
+  ```
+
+  O "início da semana" é a contagem física do fim da semana anterior, quando existe; senão, a
+  estimativa anterior (assim a estimativa se reancora na realidade a cada contagem). Cada semana
+  contada mostra "contado − estimado" (sobra ou falta de estoque em relação à meta). É só uma
+  referência: o CMV continua usando sempre a contagem física. A meta é guardada na aba
+  `Semanal_Vendas` (linha da "semana 0" de cada mês).
 
 Os dados semanais ficam em duas abas novas da planilha (`Semanal_Estoque` e `Semanal_Vendas`),
 com um mês por vez; as abas antigas (`Entradas`, `Estoque_Inicial`, `Estoque_Final`, `Meta`) não

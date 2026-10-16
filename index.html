@@ -302,6 +302,16 @@
   .wk-dates.partial{ color: var(--gold); font-style:italic; margin-top:1px; }
 
   td.wk-cell{ text-align:center; font-family:'JetBrains Mono', monospace; font-weight:600; color: var(--gold); white-space:nowrap; }
+
+  .meta-field{ display:flex; align-items:center; gap:8px; }
+  .meta-field input{ width:130px; background: var(--surface); border:1px solid var(--line); color:var(--text); padding:8px 10px; border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:0.9rem; text-align:right; }
+  .meta-field input:focus{ outline:none; border-color: var(--gold); }
+  .wk-rows .est-row dt, .wk-rows .est-row dd{ color: var(--gold); font-style:italic; }
+  .est-diff{ display:block; font-size:0.72rem; color: var(--text-muted); min-height:1em; }
+  .est-diff.pos{ color:#7be08f; }
+  .est-diff.neg{ color:#ff8d86; }
+  .tile-value.pos{ color:#7be08f; }
+  .tile-value.neg{ color:#ff8d86; }
 </style>
 </head>
 <body>
@@ -448,6 +458,7 @@
         <p class="note warn" id="semNotice" style="display:none"></p>
         <div class="pills" id="semPills"></div>
         <p class="note" id="semHint"></p>
+        <p class="note" id="semEst"></p>
         <div class="table-wrap">
           <table id="table-semestoque">
             <thead>
@@ -521,9 +532,11 @@
             <p class="hint" id="resumoHint"></p>
           </div>
           <div class="actions">
+            <label class="meta-field" title="Meta de CMV usada para estimar o estoque final: estoque inicial + compras − (vendas × CMV % meta)"><span class="kpi-label">CMV % meta</span><input type="number" id="metaPct" min="0" max="100" step="0.1" placeholder="ex.: 33"></label>
             <button class="btn ghost" id="btnWkExport">Exportar CSV</button>
           </div>
         </div>
+        <p class="note" id="metaNote"></p>
         <p class="note warn" id="wkNotice" style="display:none"></p>
         <div class="kpi-weeks" id="weekCards"></div>
       </div>
@@ -550,13 +563,15 @@
             <div class="tile"><span class="kpi-label" id="mvlabel">Vendas</span><span class="tile-value" id="mv">—</span></div>
             <div class="tile"><span class="kpi-label">Margem bruta (vendas − CMV)</span><span class="tile-value" id="mmargem">—</span></div>
             <div class="tile"><span class="kpi-label">CMV médio por semana</span><span class="tile-value" id="mavg">—</span></div>
+            <div class="tile"><span class="kpi-label">Estoque final estimado (mês)</span><span class="tile-value" id="mest">—</span></div>
+            <div class="tile"><span class="kpi-label">Contado − estimado (mês)</span><span class="tile-value" id="mestdiff">—</span></div>
           </div>
         </div>
         <div class="month-foot">
           <span class="kpi-label">Contagens do mês</span>
           <ul class="checklist cols" id="checklist"></ul>
         </div>
-        <p class="note" style="margin:14px 0 0">CMV da semana = estoque inicial + compras − estoque final. O estoque final de uma semana é o inicial da seguinte. O CMV do mês é estoque inicial + compras − estoque final do mês e é igual à soma das semanas.</p>
+        <p class="note" style="margin:14px 0 0">CMV da semana = estoque inicial + compras − estoque final. O estoque final de uma semana é o inicial da seguinte. O CMV do mês é estoque inicial + compras − estoque final do mês e é igual à soma das semanas. O <strong>estoque final estimado</strong> = estoque no início da semana + compras − (vendas × CMV % meta); é só uma referência para comparar com a contagem física, e o CMV acima usa sempre a contagem.</p>
       </div>
     </section>
 
@@ -1349,6 +1364,20 @@
   }
   const isBlankSem = (r) => !(String(r.item || "").trim() || hasVal(r.qtd) || hasVal(r.valorUnit));
 
+  // CMV % meta: guardada junto com as vendas semanais, como a linha "semana 0" do mês
+  // (assim não precisa mexer no script da planilha). Se o mês não tiver meta, vale a do
+  // mês anterior mais recente que tiver.
+  function wkMeta(p){
+    const own = semVenda(p, 0);
+    if(hasVal(own) && wkNum(own) > 0) return { value: wkNum(own), own: true, from: p };
+    let best = null;
+    state.semVendas.forEach((r) => {
+      const rp = normMonth(r.periodo);
+      if(parseInt(r.semana, 10) === 0 && hasVal(r.vendas) && wkNum(r.vendas) > 0 && rp < p && (!best || rp > best.rp)) best = { rp: rp, v: wkNum(r.vendas) };
+    });
+    return best ? { value: best.v, own: false, from: best.rp } : { value: null, own: false, from: null };
+  }
+
   // ---------- cálculo ----------
   function wkCompute(){
     const p = wkPeriodo(), nw = numWeeks(p);
@@ -1380,6 +1409,24 @@
       if(run && closed) prefix++; else run = false;
     }
 
+    // Estoque final ESTIMADO da semana = estoque no início da semana + compras − vendas × CMV % meta.
+    // O "início da semana" é a contagem física do fim da semana anterior, quando existe; senão, a
+    // própria estimativa anterior. Assim a estimativa se reancora na realidade a cada contagem.
+    // É só referência: o CMV real continua usando apenas a contagem física.
+    const meta = wkMeta(p);
+    let start = filled[0] ? ct[0] : null;
+    weeks.forEach((x) => {
+      let est = null, why = "";
+      if(meta.value === null) why = "informe o CMV % meta";
+      else if(start === null) why = filled[0] ? "falta a estimativa/contagem da semana anterior" : "falta o estoque inicial do mês";
+      else if(!(x.vendas > 0)) why = "informe as vendas da semana";
+      else est = start + x.compras - x.vendas * meta.value / 100;
+      x.est = est;
+      x.estWhy = why;
+      x.estDiff = (est !== null && filled[x.w]) ? ct[x.w] - est : null;      // contado − estimado
+      start = filled[x.w] ? ct[x.w] : est;
+    });
+
     // KPI do mês: com estoque inicial E final do mês informados, o CMV é o do mês inteiro
     // (inicial + compras − final), igual ao da aba "Resultado CMV". Sem o final, mostra o
     // parcial das semanas já fechadas em sequência.
@@ -1405,7 +1452,16 @@
         month.margem = month.vendas - month.cmv;
       }
     }
-    return { p: p, nw: nw, ct: ct, filled: filled, compras: compras, weeks: weeks, totalCompras: totalCompras, month: month };
+    // Estoque final estimado do MÊS = estoque inicial + compras do mês − vendas do mês × CMV % meta
+    // (vendas do mês: o campo mensal da aba "Resultado CMV", ou a soma das semanas se todas tiverem vendas).
+    const legacyV = wkNum(getVendasForPeriod(p));
+    let vMes = null;
+    if(legacyV > 0) vMes = legacyV;
+    else if(weeks.every((x) => x.vendas > 0)) vMes = weeks.reduce((a, x) => a + x.vendas, 0);
+    month.estEf = (meta.value !== null && filled[0] && vMes !== null) ? ct[0] + totalCompras - vMes * meta.value / 100 : null;
+    month.estDiff = (month.estEf !== null && filled[nw]) ? ct[nw] - month.estEf : null;
+    month.estWhy = meta.value === null ? "informe o CMV % meta" : (!filled[0] ? "falta o estoque inicial do mês" : (vMes === null ? "informe as vendas do mês (ou de todas as semanas)" : ""));
+    return { p: p, nw: nw, ct: ct, filled: filled, compras: compras, weeks: weeks, totalCompras: totalCompras, month: month, meta: meta };
   }
 
   // ---------- helpers de tela ----------
@@ -1428,13 +1484,21 @@
         '<dl class="wk-rows">' +
         '<div><dt>Estoque inicial</dt><dd id="ei' + w + '">—</dd></div>' +
         '<div><dt>(+) Compras NF</dt><dd id="c' + w + '">—</dd></div>' +
-        '<div><dt>(−) Estoque final</dt><dd id="ef' + w + '">—</dd></div></dl>' +
+        '<div><dt>(−) Estoque final</dt><dd id="ef' + w + '">—</dd></div>' +
+        '<div class="est-row"><dt>Estoque final estimado</dt><dd id="es' + w + '">—</dd></div></dl>' +
+        '<span class="est-diff" id="ed' + w + '"></span>' +
         '<label class="wk-vendas"><span class="kpi-label">Vendas (R$)</span>' +
         '<input type="number" min="0" step="0.01" data-vendas="' + w + '" value="' + esc(semVenda(p, w)) + '" placeholder="0,00"></label></div>';
     }
     wk$("weekCards").innerHTML = html;
     wkSetText("resumoHint", "Semanas de segunda a domingo. A 1ª e a última semana são cortadas no limite do mês, para o CMV fechar no último dia.");
     wkSetText("monthHint", formatPeriodo(p));
+    const mi = wk$("metaPct");
+    if(mi){
+      const meta = wkMeta(p);
+      mi.value = meta.own ? String(meta.value) : "";
+      mi.placeholder = meta.value !== null && !meta.own ? meta.value + " (do mês anterior)" : "ex.: 33";
+    }
   }
 
   function weeklyRefresh(){
@@ -1470,6 +1534,31 @@
       }
     });
 
+    // estoque final estimado por semana (+ diferença para a contagem)
+    c.weeks.forEach((x) => {
+      const w = x.w;
+      const el = wk$("es" + w);
+      if(el){ el.textContent = x.est === null ? "—" : fmtBRL(x.est); el.title = x.est === null ? "Sem estimativa: " + x.estWhy : "Estimado com CMV % meta de " + wkFmtPct(c.meta.value); }
+      const ed = wk$("ed" + w);
+      if(ed){
+        if(x.estDiff === null){ ed.textContent = ""; ed.className = "est-diff"; }
+        else {
+          const d = x.estDiff;
+          ed.textContent = "Contado − estimado: " + (d > 0.005 ? "+" : "") + fmtBRL(d) + (d > 0.005 ? " (sobra)" : d < -0.005 ? " (falta)" : "");
+          ed.className = "est-diff " + (d > 0.005 ? "pos" : d < -0.005 ? "neg" : "");
+        }
+      }
+    });
+    wkSetText("mest", m.estEf === null ? "—" : fmtBRL(m.estEf));
+    const mestEl = wk$("mest"); if(mestEl) mestEl.title = m.estEf === null ? "Sem estimativa: " + m.estWhy : "";
+    wkSetText("mestdiff", m.estDiff === null ? "—" : (m.estDiff > 0.005 ? "+" : "") + fmtBRL(m.estDiff) + (m.estDiff > 0.005 ? " (sobra)" : m.estDiff < -0.005 ? " (falta)" : ""));
+    const mdEl = wk$("mestdiff"); if(mdEl){ mdEl.classList.toggle("neg", m.estDiff !== null && m.estDiff < -0.005); mdEl.classList.toggle("pos", m.estDiff !== null && m.estDiff > 0.005); }
+    const mn = wk$("metaNote");
+    if(mn){
+      mn.textContent = c.meta.value === null ? "Informe o CMV % meta para estimar o estoque final de cada semana e do mês."
+        : (c.meta.own ? "Estimativa com CMV % meta de " + wkFmtPct(c.meta.value) + "." : "Estimativa com CMV % meta de " + wkFmtPct(c.meta.value) + " (herdada de " + formatPeriodo(c.meta.from) + "; digite um valor para mudar neste mês).");
+    }
+
     wkSetText("mei", m.ei === null ? "—" : fmtBRL(m.ei));
     wkSetText("mclabel", m.scope > 0 ? "(+) Compras (" + rangeLabel(m.scope) + ")" : "(+) Compras");
     wkSetText("mc", m.scope > 0 ? fmtBRL(m.compras) : "—");
@@ -1504,6 +1593,13 @@
     const k = Math.min(wkUi.contagem, Math.max(1, c.nw - 1));
     wkSetText("semTotal", fmtBRL(c.ct[k]));
     wkSetText("semTotalLabel", "Total do estoque final da S" + k);
+    const wx = c.weeks[k - 1];
+    const se = wk$("semEst");
+    if(se){
+      se.textContent = wx.est === null ? "Estoque final estimado da S" + k + ": indisponível (" + wx.estWhy + ")."
+        : "Estoque final estimado da S" + k + ": " + fmtBRL(wx.est) + " (estoque no início da semana + compras − vendas × CMV % meta de " + wkFmtPct(c.meta.value) + ")." +
+          (wx.estDiff !== null ? " Contado − estimado: " + (wx.estDiff > 0.005 ? "+" : "") + fmtBRL(wx.estDiff) + "." : "");
+    }
 
     const bad = !(semOk.sem_estoque && semOk.sem_vendas);
     ["wkNotice", "semNotice"].forEach((id) => {
@@ -1521,7 +1617,7 @@
     for(let k = 1; k <= c.nw - 1; k++){
       html += '<button class="pill' + (wkUi.contagem === k ? " active" : "") + '" data-semk="' + k + '" title="Contagem em ' +
         dowOf(p, weekRange(p, k).end) + " " + dm(p, weekRange(p, k).end) + '">' +
-        (c.filled[k] ? "✓ " : "") + "Final S" + k + "<small>" + (c.filled[k] ? fmtBRL(c.ct[k]) : "sem contagem") + "</small></button>";
+        (c.filled[k] ? "✓ " : "") + "Final S" + k + "<small>" + (c.filled[k] ? fmtBRL(c.ct[k]) : (c.weeks[k - 1].est !== null ? "est. " + fmtBRL(c.weeks[k - 1].est) : "sem contagem")) + "</small></button>";
     }
     wk$("semPills").innerHTML = html;
   }
@@ -1574,6 +1670,12 @@
     const w = e.target.getAttribute("data-vendas");
     if(!w) return;
     setSemVenda(wkPeriodo(), parseInt(w, 10), e.target.value);
+    weeklyRefresh();
+    semMark("sem_vendas");
+  });
+
+  wk$("metaPct").addEventListener("input", (e) => {
+    setSemVenda(wkPeriodo(), 0, e.target.value);
     weeklyRefresh();
     semMark("sem_vendas");
   });
@@ -1663,10 +1765,10 @@
   wk$("btnWkExport").addEventListener("click", () => {
     const c = wkCompute(), p = c.p, m = c.month;
     const rows = c.weeks.map((x) => ["Semana " + x.w + " (" + weekLabelLong(p, x.w) + ")",
-      c.filled[x.w - 1] ? x.ei : "", x.compras, c.filled[x.w] ? x.ef : "", x.closed ? x.cmv : "", x.vendas === null ? "" : x.vendas, x.pct === null ? "" : x.pct]);
+      c.filled[x.w - 1] ? x.ei : "", x.compras, c.filled[x.w] ? x.ef : "", x.closed ? x.cmv : "", x.vendas === null ? "" : x.vendas, x.pct === null ? "" : x.pct, x.est === null ? "" : x.est]);
     rows.push(["CMV DO MÊS (" + (m.status === "fechado" ? "fechado" : m.status === "parcial" ? "parcial até S" + m.prefix : "pendente") + ")",
-      m.ei === null ? "" : m.ei, m.scope > 0 ? m.compras : "", m.ef === null ? "" : m.ef, m.cmv === null ? "" : m.cmv, m.vendas > 0 ? m.vendas : "", m.pct === null ? "" : m.pct]);
-    wkDownloadCSV("cmv_resumo_semanal_" + p + ".csv", ["Semana", "Estoque inicial", "Compras NF", "Estoque final", "CMV", "Vendas", "CMV %"], rows);
+      m.ei === null ? "" : m.ei, m.scope > 0 ? m.compras : "", m.ef === null ? "" : m.ef, m.cmv === null ? "" : m.cmv, m.vendas > 0 ? m.vendas : "", m.pct === null ? "" : m.pct, m.estEf === null ? "" : m.estEf]);
+    wkDownloadCSV("cmv_resumo_semanal_" + p + ".csv", ["Semana", "Estoque inicial", "Compras NF", "Estoque final", "CMV", "Vendas", "CMV %", "Estoque final estimado"], rows);
   });
 
   // ---------- persistência (mesma trava de segurança do restante do app) ----------
