@@ -60,6 +60,11 @@ CMV da semana = Estoque inicial + Compras da semana − Estoque final da semana
   estoque final estimado do mês    = estoque inicial + compras do mês − (vendas do mês × CMV % meta)
   ```
 
+  Se nenhuma meta for informada, o app usa o **CMV % real do mês** (CMV do mês ÷ vendas, quando há
+  estoque inicial e final do mês e vendas em todas as semanas) e a tela informa qual taxa está em
+  uso; se a estimativa ficar negativa, avisa que a meta parece alta para o mês. Quando faltar algum
+  dado, o motivo aparece no próprio cartão da semana.
+
   O "início da semana" é a contagem física do fim da semana anterior, quando existe; senão, a
   estimativa anterior (assim a estimativa se reancora na realidade a cada contagem). Cada semana
   contada mostra "contado − estimado" (sobra ou falta de estoque em relação à meta). É só uma

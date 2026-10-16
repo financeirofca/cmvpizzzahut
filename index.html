@@ -312,6 +312,9 @@
   .est-diff.neg{ color:#ff8d86; }
   .tile-value.pos{ color:#7be08f; }
   .tile-value.neg{ color:#ff8d86; }
+  .est-diff.why{ color: var(--gold); font-style:italic; }
+  .wk-rows .est-row dd.neg{ color:#ff8d86; }
+  .meta-field input.need{ border-color: var(--red); box-shadow: 0 0 0 3px rgba(226,35,28,0.3); }
 </style>
 </head>
 <body>
@@ -532,7 +535,7 @@
             <p class="hint" id="resumoHint"></p>
           </div>
           <div class="actions">
-            <label class="meta-field" title="Meta de CMV usada para estimar o estoque final: estoque inicial + compras − (vendas × CMV % meta)"><span class="kpi-label">CMV % meta</span><input type="number" id="metaPct" min="0" max="100" step="0.1" placeholder="ex.: 33"></label>
+            <label class="meta-field" title="Meta de CMV usada para estimar o estoque final: estoque inicial + compras − (vendas × CMV % meta). Sem meta, usa o CMV % real do mês."><span class="kpi-label">CMV % meta</span><input type="number" id="metaPct" min="0" max="100" step="0.1" placeholder="meta %"></label>
             <button class="btn ghost" id="btnWkExport">Exportar CSV</button>
           </div>
         </div>
@@ -1409,23 +1412,7 @@
       if(run && closed) prefix++; else run = false;
     }
 
-    // Estoque final ESTIMADO da semana = estoque no início da semana + compras − vendas × CMV % meta.
-    // O "início da semana" é a contagem física do fim da semana anterior, quando existe; senão, a
-    // própria estimativa anterior. Assim a estimativa se reancora na realidade a cada contagem.
-    // É só referência: o CMV real continua usando apenas a contagem física.
     const meta = wkMeta(p);
-    let start = filled[0] ? ct[0] : null;
-    weeks.forEach((x) => {
-      let est = null, why = "";
-      if(meta.value === null) why = "informe o CMV % meta";
-      else if(start === null) why = filled[0] ? "falta a estimativa/contagem da semana anterior" : "falta o estoque inicial do mês";
-      else if(!(x.vendas > 0)) why = "informe as vendas da semana";
-      else est = start + x.compras - x.vendas * meta.value / 100;
-      x.est = est;
-      x.estWhy = why;
-      x.estDiff = (est !== null && filled[x.w]) ? ct[x.w] - est : null;      // contado − estimado
-      start = filled[x.w] ? ct[x.w] : est;
-    });
 
     // KPI do mês: com estoque inicial E final do mês informados, o CMV é o do mês inteiro
     // (inicial + compras − final), igual ao da aba "Resultado CMV". Sem o final, mostra o
@@ -1452,19 +1439,49 @@
         month.margem = month.vendas - month.cmv;
       }
     }
-    // Estoque final estimado do MÊS = estoque inicial + compras do mês − vendas do mês × CMV % meta
+    // ---------- estoque final ESTIMADO ----------
+    // Taxa usada: a CMV % meta (do mês, ou herdada do mês anterior). Sem meta informada, usa o CMV %
+    // REAL do mês, quando já dá para calculá-lo (estoque inicial e final do mês + vendas de todas as
+    // semanas) — assim a estimativa aparece assim que as vendas são lançadas.
+    const rate = meta.value !== null ? { value: meta.value, src: meta.own ? "meta" : "herdada", from: meta.from }
+      : (month.pct !== null ? { value: month.pct, src: "real", from: null } : { value: null, src: "", from: null });
+    const noRateWhy = "informe o CMV % meta (ou lance as vendas de todas as semanas e o estoque final do mês, para usar o CMV % real)";
+
+    // Semana: estoque no início da semana + compras − vendas × taxa. O "início da semana" é a contagem
+    // física do fim da semana anterior, quando existe; senão, a estimativa anterior (reancora na realidade
+    // a cada contagem). É só referência: o CMV real continua usando apenas a contagem física.
+    let start = filled[0] ? ct[0] : null;
+    weeks.forEach((x) => {
+      let est = null, why = "";
+      if(rate.value === null) why = noRateWhy;
+      else if(start === null) why = filled[0] ? "falta a estimativa/contagem da semana anterior" : "falta o estoque inicial do mês";
+      else if(!(x.vendas > 0)) why = "informe as vendas da semana";
+      else est = start + x.compras - x.vendas * rate.value / 100;
+      x.est = est;
+      x.estWhy = why;
+      x.estDiff = (est !== null && filled[x.w]) ? ct[x.w] - est : null;      // contado − estimado
+      start = filled[x.w] ? ct[x.w] : est;
+    });
+
+    // Mês: estoque inicial + compras do mês − vendas do mês × taxa
     // (vendas do mês: o campo mensal da aba "Resultado CMV", ou a soma das semanas se todas tiverem vendas).
     const legacyV = wkNum(getVendasForPeriod(p));
     let vMes = null;
     if(legacyV > 0) vMes = legacyV;
     else if(weeks.every((x) => x.vendas > 0)) vMes = weeks.reduce((a, x) => a + x.vendas, 0);
-    month.estEf = (meta.value !== null && filled[0] && vMes !== null) ? ct[0] + totalCompras - vMes * meta.value / 100 : null;
+    month.estEf = (rate.value !== null && filled[0] && vMes !== null) ? ct[0] + totalCompras - vMes * rate.value / 100 : null;
     month.estDiff = (month.estEf !== null && filled[nw]) ? ct[nw] - month.estEf : null;
-    month.estWhy = meta.value === null ? "informe o CMV % meta" : (!filled[0] ? "falta o estoque inicial do mês" : (vMes === null ? "informe as vendas do mês (ou de todas as semanas)" : ""));
-    return { p: p, nw: nw, ct: ct, filled: filled, compras: compras, weeks: weeks, totalCompras: totalCompras, month: month, meta: meta };
+    month.estWhy = rate.value === null ? noRateWhy : (!filled[0] ? "falta o estoque inicial do mês" : (vMes === null ? "informe as vendas do mês (ou de todas as semanas)" : ""));
+    const anyVendas = weeks.some((x) => x.vendas > 0);
+    const anyNeg = weeks.some((x) => x.est !== null && x.est < 0) || (month.estEf !== null && month.estEf < 0);
+    return { p: p, nw: nw, ct: ct, filled: filled, compras: compras, weeks: weeks, totalCompras: totalCompras, month: month, meta: meta, rate: rate, anyVendas: anyVendas, anyNeg: anyNeg };
   }
 
   // ---------- helpers de tela ----------
+  function rateLabel(r){
+    if(r.value === null) return "";
+    return (r.src === "real" ? "CMV % real do mês de " : "CMV % meta de ") + wkFmtPct(r.value);
+  }
   const wkFmtPct = (n) => n === null || n === undefined ? "—" : n.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
   function wkSetText(id, txt){ const el = wk$(id); if(el) el.textContent = txt; }
   function wkSetNeg(id, v){ const el = wk$(id); if(el) el.classList.toggle("neg", v !== null && v < 0); }
@@ -1497,7 +1514,7 @@
     if(mi){
       const meta = wkMeta(p);
       mi.value = meta.own ? String(meta.value) : "";
-      mi.placeholder = meta.value !== null && !meta.own ? meta.value + " (do mês anterior)" : "ex.: 33";
+      mi.placeholder = meta.value !== null && !meta.own ? meta.value + " (do mês anterior)" : "meta %";
     }
   }
 
@@ -1538,10 +1555,19 @@
     c.weeks.forEach((x) => {
       const w = x.w;
       const el = wk$("es" + w);
-      if(el){ el.textContent = x.est === null ? "—" : fmtBRL(x.est); el.title = x.est === null ? "Sem estimativa: " + x.estWhy : "Estimado com CMV % meta de " + wkFmtPct(c.meta.value); }
+      if(el){
+        el.textContent = x.est === null ? "—" : fmtBRL(x.est);
+        el.classList.toggle("neg", x.est !== null && x.est < 0);
+        el.title = x.est === null ? "Sem estimativa: " + x.estWhy : "Estimado com " + rateLabel(c.rate) + (x.est < 0 ? " — estimativa negativa: o consumo teórico passa do estoque + compras; confira a meta" : "");
+      }
       const ed = wk$("ed" + w);
       if(ed){
-        if(x.estDiff === null){ ed.textContent = ""; ed.className = "est-diff"; }
+        if(x.est === null){
+          // motivo visível no próprio cartão (só quando a pessoa já começou a lançar vendas/meta)
+          ed.textContent = (c.anyVendas || c.meta.value !== null) ? "Sem estimativa: " + x.estWhy : "";
+          ed.className = "est-diff why";
+        }
+        else if(x.estDiff === null){ ed.textContent = ""; ed.className = "est-diff"; }
         else {
           const d = x.estDiff;
           ed.textContent = "Contado − estimado: " + (d > 0.005 ? "+" : "") + fmtBRL(d) + (d > 0.005 ? " (sobra)" : d < -0.005 ? " (falta)" : "");
@@ -1555,9 +1581,18 @@
     const mdEl = wk$("mestdiff"); if(mdEl){ mdEl.classList.toggle("neg", m.estDiff !== null && m.estDiff < -0.005); mdEl.classList.toggle("pos", m.estDiff !== null && m.estDiff > 0.005); }
     const mn = wk$("metaNote");
     if(mn){
-      mn.textContent = c.meta.value === null ? "Informe o CMV % meta para estimar o estoque final de cada semana e do mês."
-        : (c.meta.own ? "Estimativa com CMV % meta de " + wkFmtPct(c.meta.value) + "." : "Estimativa com CMV % meta de " + wkFmtPct(c.meta.value) + " (herdada de " + formatPeriodo(c.meta.from) + "; digite um valor para mudar neste mês).");
+      let txt, warn = false;
+      const real = m.pct !== null ? " CMV % real do mês: " + wkFmtPct(m.pct) + "." : "";
+      if(c.rate.src === "meta") txt = "Estimativa com CMV % meta de " + wkFmtPct(c.rate.value) + "." + real;
+      else if(c.rate.src === "herdada") txt = "Estimativa com CMV % meta de " + wkFmtPct(c.rate.value) + " (herdada de " + formatPeriodo(c.rate.from) + "; digite um valor para mudar neste mês)." + real;
+      else if(c.rate.src === "real") txt = "Sem meta informada: estimando com o CMV % real do mês (" + wkFmtPct(c.rate.value) + "). Digite uma CMV % meta para comparar com um objetivo.";
+      else { txt = "Informe o CMV % meta para estimar o estoque final de cada semana e do mês" + (c.anyVendas ? " — as vendas já estão lançadas, falta só a meta (ou o estoque final do mês, para usar o CMV % real)." : "."); warn = c.anyVendas; }
+      if(c.anyNeg) { txt += " ⚠ Há estoque estimado NEGATIVO: com essa taxa o consumo teórico passa do estoque + compras — a meta parece alta para este mês."; warn = true; }
+      mn.textContent = txt;
+      mn.classList.toggle("warn", warn);
     }
+    const mpi = wk$("metaPct");
+    if(mpi) mpi.classList.toggle("need", c.rate.value === null && c.anyVendas);
 
     wkSetText("mei", m.ei === null ? "—" : fmtBRL(m.ei));
     wkSetText("mclabel", m.scope > 0 ? "(+) Compras (" + rangeLabel(m.scope) + ")" : "(+) Compras");
@@ -1597,7 +1632,7 @@
     const se = wk$("semEst");
     if(se){
       se.textContent = wx.est === null ? "Estoque final estimado da S" + k + ": indisponível (" + wx.estWhy + ")."
-        : "Estoque final estimado da S" + k + ": " + fmtBRL(wx.est) + " (estoque no início da semana + compras − vendas × CMV % meta de " + wkFmtPct(c.meta.value) + ")." +
+        : "Estoque final estimado da S" + k + ": " + fmtBRL(wx.est) + " (estoque no início da semana + compras − vendas × " + rateLabel(c.rate) + ")." +
           (wx.estDiff !== null ? " Contado − estimado: " + (wx.estDiff > 0.005 ? "+" : "") + fmtBRL(wx.estDiff) + "." : "");
     }
 
