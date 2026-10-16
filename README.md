@@ -20,10 +20,43 @@ a cada alteração.
   com autocompletar (baseada em `Itens estoque.xlsx`); ao escolher um item da lista, o "Valor
   Unit. (R$)" é preenchido automaticamente (mas continua editável, caso o preço tenha mudado).
 - **Estoque Final** — mesma dinâmica da aba Estoque Inicial (busca de item + preço automático).
+- **Estoque Semanal** — contagens ao fim de cada semana (segunda a domingo) entre o Estoque
+  Inicial e o Estoque Final do mês, com a mesma busca de item e preço automático. O botão
+  "Copiar itens da contagem anterior" traz os itens já lançados (a S1 copia do Estoque Inicial)
+  para só preencher as quantidades.
+- **Resumo Semanal** — um cartão de KPIs por semana e, logo abaixo, o KPI geral do mês (ver
+  "Semanas e KPIs semanais").
 - **Resultado CMV** — cupom com o cálculo consolidado e campo opcional de "Vendas do período"
   para calcular % de CMV sobre vendas e margem bruta.
 
 Cada tabela tem botões para **adicionar linha**, **limpar tabela** e **exportar CSV**.
+
+## Semanas e KPIs semanais
+
+As semanas vão **sempre de segunda a domingo**, com as datas reais do mês em cada cartão
+(ex.: "Seg 03/08 → Dom 09/08"). A 1ª e a última semana são cortadas no limite do mês
+("semana parcial · N dias"), para que o CMV feche no último dia. Por isso um mês tem de 4 a 6
+semanas (agosto/2026, por exemplo, tem 6; fevereiro/2027 tem 4).
+
+```
+CMV da semana = Estoque inicial + Compras da semana − Estoque final da semana
+```
+
+- **Compras da semana:** vêm das Notas Fiscais pela **data da NF** (a tabela de NFs mostra a
+  coluna "Sem." com a semana de cada nota). Nada muda na forma de lançar as NFs.
+- **Estoque inicial / final:** a S1 começa no *Estoque Inicial* do mês e a última semana termina
+  no *Estoque Final* do mês. As contagens intermediárias (final de S1 a S(n−1)) são lançadas na
+  aba *Estoque Semanal*; o final de uma semana é o inicial da seguinte.
+- **KPI do mês:** com Estoque Inicial e Final do mês informados, o CMV do mês é o mesmo da aba
+  Resultado CMV e é igual à soma das semanas. Sem o final do mês, aparece o parcial das semanas
+  já fechadas em sequência. O CMV % e a margem só aparecem quando há vendas: o campo mensal da
+  aba Resultado CMV, ou a soma das vendas semanais (campo "Vendas" de cada cartão).
+- Cada cartão mostra a variação do CMV % contra a semana anterior (em pontos percentuais).
+
+Os dados semanais ficam em duas abas novas da planilha (`Semanal_Estoque` e `Semanal_Vendas`),
+com um mês por vez; as abas antigas (`Entradas`, `Estoque_Inicial`, `Estoque_Final`, `Meta`) não
+são alteradas pela parte semanal. Elas passam pela mesma trava de segurança descrita em "Como os
+dados são salvos" (só salvam depois de ler com sucesso; botão "Salvar agora"; aviso ao sair).
 
 ## Período de referência
 

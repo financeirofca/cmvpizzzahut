@@ -206,6 +206,102 @@
 
   ::-webkit-scrollbar{ height:8px; width:8px;}
   ::-webkit-scrollbar-thumb{ background:#4a3a3f; border-radius:8px;}
+
+  /* ---------- v2: semanal ---------- */
+  .period-row{ display:flex; gap:8px; }
+  .period-control select{
+    background: rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.3); color:#fff;
+    padding:8px 10px; border-radius:8px; font-family:'Inter'; font-size:0.9rem; cursor:pointer;
+  }
+  .period-control select option{ color:#111; }
+  .chip small{ display:block; margin-top:4px; font-size:0.7rem; color:var(--text-muted); }
+  .pills{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .pill{
+    font-family:'Inter'; font-size:0.8rem; font-weight:600; cursor:pointer; text-align:left;
+    background: var(--surface); color: var(--text); border:1px solid var(--line);
+    padding:8px 12px; border-radius:10px; transition: all .15s ease; min-width:96px;
+  }
+  .pill:hover{ border-color:#6b5158; }
+  .pill small{ display:block; margin-top:2px; font-family:'JetBrains Mono', monospace; font-size:0.7rem; font-weight:500; opacity:.8; }
+  .pill.active{ background: var(--gold); color:#1b1410; border-color: var(--gold); }
+  .badge{
+    display:inline-block; margin-left:8px; padding:2px 8px; border-radius:999px; font-size:0.66rem;
+    font-weight:700; letter-spacing:0.3px; text-transform:uppercase; vertical-align:middle;
+  }
+  .badge.ok{ background: rgba(63,163,86,0.22); color:#7be08f; }
+  .badge.wait{ background: rgba(242,172,31,0.18); color: var(--gold); }
+  .badge.part{ background: rgba(242,172,31,0.28); color: var(--gold); }
+  .wk-dates{ display:block; font-size:0.72rem; color:var(--text-muted); margin-top:2px; font-weight:400; }
+  td.n, th.n{ font-family:'JetBrains Mono', monospace; text-align:right; white-space:nowrap; padding-right:14px; }
+  th.n{ font-family:'Inter'; }
+  td.n.strong{ font-weight:700; color:#fff; }
+  td.n.neg{ color:#ff8d86; }
+  td.n.muted{ color: var(--text-muted); }
+  td.n input{ max-width:140px; }
+  tr.month-row td{ background: var(--surface-2); border-top:2px solid var(--red); font-weight:700; padding-top:14px; padding-bottom:14px; }
+  tr.month-row td.n{ color:#fff; font-size:0.98rem; }
+  td input.warn{ border-color: var(--red); }
+  .empty-row td{ text-align:center; color:var(--text-muted); padding:24px; font-size:0.85rem; }
+  .checklist{ list-style:none; padding:0; margin:0; font-size:0.84rem; }
+  .checklist li{ display:flex; gap:10px; align-items:center; padding:5px 0; color:var(--text-muted); }
+  .checklist li.ok{ color: var(--text); }
+  .checklist li .mark{ width:18px; height:18px; border-radius:50%; border:1.5px solid var(--line); display:inline-flex; align-items:center; justify-content:center; font-size:0.68rem; flex-shrink:0; }
+  .checklist li.ok .mark{ background: var(--green); border-color: var(--green); color:#fff; }
+  .note{ font-size:0.8rem; color:var(--text-muted); line-height:1.5; margin:0 0 12px; }
+  .note.warn{ color: var(--gold); }
+  .receipt .line.sub{ font-size:0.78rem; color:#6b6b6b; }
+  @media (max-width: 720px){ .summary-strip{ grid-template-columns: repeat(2, 1fr); } }
+
+  /* ---------- v3: KPIs semanais + KPI do mês ---------- */
+  .kpi-label{ display:block; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.6px; color:var(--text-muted); font-weight:600; }
+  .kpi-weeks{ display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:14px; }
+  .wk-card{
+    background: var(--surface); border:1px solid var(--line); border-top:3px solid var(--line);
+    border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:12px;
+  }
+  .wk-card.closed{ border-top-color: var(--green); }
+  .wk-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .wk-head strong{ font-family:'Oswald', sans-serif; text-transform:uppercase; letter-spacing:0.4px; font-size:0.98rem; }
+  .wk-head .badge{ margin-left:0; text-align:right; max-width:120px; }
+  .wk-main{ display:flex; flex-direction:column; gap:4px; }
+  .kpi-big{ font-family:'JetBrains Mono', monospace; font-size:1.55rem; font-weight:700; color:#fff; line-height:1.15; }
+  .kpi-big.neg, .hero-value.neg{ color:#ff8d86; }
+  .wk-pct{ display:flex; align-items:baseline; gap:8px; margin-top:2px; }
+  .kpi-pct{ font-family:'JetBrains Mono', monospace; font-size:0.95rem; font-weight:600; color: var(--gold); }
+  .wk-delta{ font-size:0.72rem; color: var(--text-muted); min-height:1em; }
+  .wk-delta.up{ color:#ff8d86; }
+  .wk-delta.down{ color:#7be08f; }
+  .wk-rows{ margin:0; border-top:1px dashed var(--line); padding-top:10px; display:flex; flex-direction:column; gap:6px; }
+  .wk-rows > div{ display:flex; justify-content:space-between; gap:8px; font-size:0.8rem; }
+  .wk-rows dt{ color: var(--text-muted); }
+  .wk-rows dd{ margin:0; font-family:'JetBrains Mono', monospace; text-align:right; }
+  .wk-vendas input{
+    width:100%; margin-top:6px; background: var(--panel); border:1px solid var(--line); color:var(--text);
+    padding:8px 10px; border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:0.9rem; text-align:right;
+  }
+  .wk-vendas input:focus{ outline:none; border-color: var(--gold); }
+
+  .month-card{ border-top:3px solid var(--red); }
+  .month-grid{ display:grid; grid-template-columns: minmax(240px, 0.8fr) 2fr; gap:16px; }
+  @media (max-width: 820px){ .month-grid{ grid-template-columns: 1fr; } }
+  .month-hero{
+    background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%); border-radius:12px; padding:20px;
+    display:flex; flex-direction:column; gap:6px; justify-content:center; box-shadow: var(--shadow);
+  }
+  .month-hero .kpi-label{ color: rgba(255,255,255,0.8); }
+  .hero-value{ font-family:'JetBrains Mono', monospace; font-size:2.1rem; font-weight:700; color:#fff; line-height:1.1; word-break:break-word; }
+  .hero-sub{ font-size:0.8rem; color: rgba(255,255,255,0.85); }
+  .hero-pct{ margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.3); display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+  .hero-pct-value{ font-family:'JetBrains Mono', monospace; font-size:1.25rem; font-weight:700; color:#fff; }
+  .kpi-tiles{ display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:12px; }
+  .tile{ background: var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; gap:6px; }
+  .tile-value{ font-family:'JetBrains Mono', monospace; font-size:1.15rem; font-weight:600; color:#fff; }
+  .month-foot{ margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); }
+  .checklist.cols{ display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:0 20px; margin-top:6px; }
+
+  .wk-dates.partial{ color: var(--gold); font-style:italic; margin-top:1px; }
+
+  td.wk-cell{ text-align:center; font-family:'JetBrains Mono', monospace; font-weight:600; color: var(--gold); white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -248,7 +344,9 @@
   <nav class="tabs">
     <button class="tab active" data-tab="entradas">Notas Fiscais (Entradas)</button>
     <button class="tab" data-tab="inicial">Estoque Inicial</button>
+    <button class="tab" data-tab="semestoque">Estoque Semanal</button>
     <button class="tab" data-tab="final">Estoque Final</button>
+    <button class="tab" data-tab="semresumo">Resumo Semanal</button>
     <button class="tab" data-tab="resultado">Resultado CMV</button>
   </nav>
 
@@ -273,6 +371,7 @@
             <thead>
               <tr>
                 <th style="width:130px">Data</th>
+                <th style="width:64px">Sem.</th>
                 <th style="width:130px">Nº NF</th>
                 <th>Fornecedor</th>
                 <th style="width:150px">Valor Total (R$)</th>
@@ -282,7 +381,7 @@
             <tbody></tbody>
             <tfoot>
               <tr>
-                <td colspan="3" class="total-label">Total de Compras (Entradas)</td>
+                <td colspan="4" class="total-label">Total de Compras (Entradas)</td>
                 <td class="total-value" id="totalEntradas">R$ 0,00</td>
                 <td></td>
               </tr>
@@ -331,6 +430,49 @@
       </div>
     </section>
 
+    <!-- ESTOQUE SEMANAL -->
+    <section id="tab-semestoque" class="panel">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div>
+            <h2 id="semTitle">Estoque semanal</h2>
+            <p class="hint">Contagens ao fim de cada semana (segunda a domingo), entre o Estoque Inicial e o Estoque Final do mês</p>
+          </div>
+          <div class="actions">
+            <button class="btn ghost" id="btnSemCopy">Copiar itens da contagem anterior</button>
+            <button class="btn ghost" id="btnSemExport">Exportar CSV</button>
+            <button class="btn danger-outline" id="btnSemClear">Limpar contagem</button>
+            <button class="btn primary" id="btnSemAdd">+ Adicionar item</button>
+          </div>
+        </div>
+        <p class="note warn" id="semNotice" style="display:none"></p>
+        <div class="pills" id="semPills"></div>
+        <p class="note" id="semHint"></p>
+        <div class="table-wrap">
+          <table id="table-semestoque">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th style="width:170px">Categoria</th>
+                <th style="width:90px">Qtde</th>
+                <th style="width:130px">Valor Unit. (R$)</th>
+                <th class="n" style="width:130px">Valor Total (R$)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="total-label" id="semTotalLabel">Total da contagem</td>
+                <td class="total-value" id="semTotal">R$ 0,00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <!-- ESTOQUE FINAL -->
     <section id="tab-final" class="panel">
       <div class="panel-card">
@@ -367,6 +509,54 @@
             </tfoot>
           </table>
         </div>
+      </div>
+    </section>
+
+    <!-- RESUMO SEMANAL -->
+    <section id="tab-semresumo" class="panel">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div>
+            <h2>KPIs semanais</h2>
+            <p class="hint" id="resumoHint"></p>
+          </div>
+          <div class="actions">
+            <button class="btn ghost" id="btnWkExport">Exportar CSV</button>
+          </div>
+        </div>
+        <p class="note warn" id="wkNotice" style="display:none"></p>
+        <div class="kpi-weeks" id="weekCards"></div>
+      </div>
+
+      <div class="panel-card month-card" style="margin-top:20px">
+        <div class="panel-header">
+          <div>
+            <h2>KPI do mês (geral)</h2>
+            <p class="hint" id="monthHint"></p>
+          </div>
+          <span class="badge" id="mbadge" style="margin-left:0"></span>
+        </div>
+        <div class="month-grid">
+          <div class="month-hero">
+            <span class="kpi-label">CMV do mês</span>
+            <span class="hero-value" id="mcmv">—</span>
+            <span class="hero-sub" id="msub">Aguardando contagens</span>
+            <div class="hero-pct"><span class="kpi-label">CMV sobre vendas</span><span class="hero-pct-value" id="mpct">—</span></div>
+          </div>
+          <div class="kpi-tiles">
+            <div class="tile"><span class="kpi-label">Estoque inicial do mês</span><span class="tile-value" id="mei">—</span></div>
+            <div class="tile"><span class="kpi-label" id="mclabel">(+) Compras</span><span class="tile-value" id="mc">—</span></div>
+            <div class="tile"><span class="kpi-label" id="meflabel">(−) Estoque final</span><span class="tile-value" id="mef">—</span></div>
+            <div class="tile"><span class="kpi-label" id="mvlabel">Vendas</span><span class="tile-value" id="mv">—</span></div>
+            <div class="tile"><span class="kpi-label">Margem bruta (vendas − CMV)</span><span class="tile-value" id="mmargem">—</span></div>
+            <div class="tile"><span class="kpi-label">CMV médio por semana</span><span class="tile-value" id="mavg">—</span></div>
+          </div>
+        </div>
+        <div class="month-foot">
+          <span class="kpi-label">Contagens do mês</span>
+          <ul class="checklist cols" id="checklist"></ul>
+        </div>
+        <p class="note" style="margin:14px 0 0">CMV da semana = estoque inicial + compras − estoque final. O estoque final de uma semana é o inicial da seguinte. O CMV do mês é estoque inicial + compras − estoque final do mês e é igual à soma das semanas.</p>
       </div>
     </section>
 
@@ -622,11 +812,12 @@
     const tbody = document.querySelector('#table-entradas tbody');
     const rows = currentPeriodRows('entradas');
     tbody.innerHTML = rows.map(r => `
-      <tr data-id="${r.id}">
+      <tr data-id="${esc(r.id)}">
         <td><input type="date" data-field="data" value="${normDate(r.data)}"></td>
-        <td><input type="text" data-field="nf" value="${r.nf}" placeholder="000000"></td>
-        <td><input type="text" data-field="fornecedor" value="${r.fornecedor}" placeholder="Fornecedor"></td>
-        <td class="num"><input type="number" min="0" step="0.01" data-field="valorTotal" value="${r.valorTotal}" placeholder="0,00"></td>
+        <td class="wk-cell">${wkCellText(r)}</td>
+        <td><input type="text" data-field="nf" value="${esc(r.nf)}" placeholder="000000"></td>
+        <td><input type="text" data-field="fornecedor" value="${esc(r.fornecedor)}" placeholder="Fornecedor"></td>
+        <td class="num"><input type="number" min="0" step="0.01" data-field="valorTotal" value="${esc(r.valorTotal)}" placeholder="0,00"></td>
         <td class="remove-cell"><button class="remove-btn" data-remove title="Remover linha">✕</button></td>
       </tr>
     `).join('');
@@ -637,11 +828,11 @@
     const tbody = document.querySelector(`#table-${kind} tbody`);
     const rows = currentPeriodRows(kind);
     tbody.innerHTML = rows.map(r => `
-      <tr data-id="${r.id}">
-        <td><input type="text" data-field="item" list="itensEstoqueList" autocomplete="off" value="${r.item}" placeholder="Buscar item..."></td>
+      <tr data-id="${esc(r.id)}">
+        <td><input type="text" data-field="item" list="itensEstoqueList" autocomplete="off" value="${esc(r.item)}" placeholder="Buscar item..."></td>
         <td><select data-field="categoria">${categoriaOptions(r.categoria)}</select></td>
-        <td class="num"><input type="number" min="0" step="0.01" data-field="qtd" value="${r.qtd}" placeholder="0"></td>
-        <td class="num"><input type="number" min="0" step="0.01" data-field="valorUnit" value="${r.valorUnit}" placeholder="0,00"></td>
+        <td class="num"><input type="number" min="0" step="0.01" data-field="qtd" value="${esc(r.qtd)}" placeholder="0"></td>
+        <td class="num"><input type="number" min="0" step="0.01" data-field="valorUnit" value="${esc(r.valorUnit)}" placeholder="0,00"></td>
         <td class="total-cell">${fmtBRL(rowTotal(r))}</td>
         <td class="remove-cell"><button class="remove-btn" data-remove title="Remover linha">✕</button></td>
       </tr>
@@ -686,6 +877,7 @@
       margemEl.textContent = '—';
       margemEl.className = 'v';
     }
+    weeklyRefresh();
   }
 
   function formatPeriodo(v){
@@ -700,6 +892,7 @@
     renderStockTable('inicial');
     renderStockTable('final');
     renderResultado();
+    weeklyRender();
     document.getElementById('periodo').value = normMonth(state.periodo);
     document.getElementById('vendasPeriodo').value = getVendasForPeriod(state.periodo) || '';
     renderMesesComDados();
@@ -732,6 +925,7 @@
       const row = state[kind].find(r => r.id === id);
       if(!row) return;
       row[field] = e.target.value;
+      if(kind === 'entradas' && field === 'data'){ const wc = tr.querySelector('.wk-cell'); if(wc) wc.textContent = wkCellText(row); }
       if(field === 'item' && Object.prototype.hasOwnProperty.call(ITENS_ESTOQUE, e.target.value)){
         row.valorUnit = ITENS_ESTOQUE[e.target.value];
         const valorUnitInput = tr.querySelector('[data-field="valorUnit"]');
@@ -890,6 +1084,7 @@
   }
 
   async function saveSection(section){
+    if(SEM_SECTIONS.indexOf(section) !== -1) return saveSem(section);
     if(!loaded[section]){ statusBlocked(); return; }
     const myVersion = editVersion[section];
     const payload = state[section];
@@ -1006,6 +1201,10 @@
       const ok = await loadSection(s);
       if(!ok) okAll = false;
     }
+    for(const s of SEM_SECTIONS){
+      if(dirty[s]) continue;
+      await loadSem(s);
+    }
     ensureDefaults();
     // Não redesenha a tela enquanto a pessoa está digitando: o redesenho
     // recria os campos e faria o texto em andamento voltar ao último valor
@@ -1071,6 +1270,459 @@
     if(b) b.remove();
   }
 
+  // escapa texto vindo da planilha antes de colocá-lo em atributos HTML
+  const esc = (s) => String(s === undefined || s === null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+  // ==================================================================
+  // SEMANAL — semanas de segunda a domingo (cortadas no limite do mês)
+  // KPIs por semana + KPI do mês. Usa os mesmos dados do app (NFs por
+  // data, Estoque Inicial e Final do mês) e acrescenta apenas:
+  //   - as contagens intermediárias (estoque final de S1..S(n-1))  -> aba "Semanal_Estoque"
+  //   - as vendas por semana                                       -> aba "Semanal_Vendas"
+  // Ambas passam pela mesma trava de segurança do restante do app
+  // (só salva depois de ler com sucesso; "Salvar agora"; aviso ao sair).
+  // ==================================================================
+  const MAX_WEEKS = 6;
+  const DOW = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const SEM_SECTIONS = ["sem_estoque", "sem_vendas"];
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const hasVal = (v) => v !== undefined && v !== null && String(v) !== "";
+  const wk$ = (id) => document.getElementById(id);
+  const wkNum = (x) => { const n = parseFloat(x); return isNaN(n) ? 0 : n; };
+
+  state.semEstoque = [];
+  state.semVendas = [];
+  // períodos (meses) editados e ainda não confirmados, por seção semanal
+  const semPeriods = { sem_estoque: new Set(), sem_vendas: new Set() };
+  const semOk = { sem_estoque: true, sem_vendas: true };
+  const wkUi = { contagem: 1 };
+
+  function wkPeriodo(){ return normMonth(state.periodo); }
+
+  // ---------- semanas ----------
+  const weeksCache = {};
+  function wkParse(p){ const a = p.split("-"); return { y: parseInt(a[0], 10), m: parseInt(a[1], 10) }; }
+  function daysInMonth(p){ const o = wkParse(p); return new Date(o.y, o.m, 0).getDate(); }
+  function weeksOf(p){
+    if(weeksCache[p]) return weeksCache[p];
+    const dim = daysInMonth(p), o = wkParse(p);
+    const list = [];
+    let start = 1;
+    for(let d = 1; d <= dim; d++){
+      const dow = new Date(o.y, o.m - 1, d).getDay();
+      if(dow === 0 || d === dim){ list.push({ w: list.length + 1, start: start, end: d }); start = d + 1; }
+    }
+    weeksCache[p] = list;
+    return list;
+  }
+  function numWeeks(p){ return weeksOf(p).length; }
+  function weekRange(p, w){ return weeksOf(p)[w - 1] || { start: 1, end: 1 }; }
+  function dowOf(p, day){ const o = wkParse(p); return DOW[new Date(o.y, o.m - 1, day).getDay()]; }
+  function dm(p, day){ return pad2(day) + "/" + pad2(wkParse(p).m); }
+  function weekLabelLong(p, w){ const r = weekRange(p, w); return dowOf(p, r.start) + " " + dm(p, r.start) + " → " + dowOf(p, r.end) + " " + dm(p, r.end); }
+  function weekDays(p, w){ const r = weekRange(p, w); return r.end - r.start + 1; }
+  function weekOfDate(s, p){
+    const d = parseInt(String(s).slice(8, 10), 10) || 1;
+    const list = weeksOf(p);
+    for(let i = 0; i < list.length; i++) if(d >= list[i].start && d <= list[i].end) return list[i].w;
+    return 1;
+  }
+  function rangeLabel(n){ return n === 1 ? "S1" : "S1–S" + n; }
+  // texto da coluna "Sem." da tabela de Notas Fiscais
+  function wkCellText(r){
+    const d = normDate(r.data), p = wkPeriodo();
+    if(!d || d.slice(0, 7) !== p) return "—";
+    return "S" + weekOfDate(d, p);
+  }
+
+  // ---------- dados semanais ----------
+  function semRows(p){ return state.semEstoque.filter((r) => normMonth(r.periodo) === p); }
+  function semVenda(p, w){
+    const r = state.semVendas.find((x) => normMonth(x.periodo) === p && parseInt(x.semana, 10) === w);
+    return r ? r.vendas : "";
+  }
+  function setSemVenda(p, w, v){
+    const r = state.semVendas.find((x) => normMonth(x.periodo) === p && parseInt(x.semana, 10) === w);
+    if(r) r.vendas = v; else state.semVendas.push({ periodo: p, semana: w, vendas: v });
+  }
+  const isBlankSem = (r) => !(String(r.item || "").trim() || hasVal(r.qtd) || hasVal(r.valorUnit));
+
+  // ---------- cálculo ----------
+  function wkCompute(){
+    const p = wkPeriodo(), nw = numWeeks(p);
+    const ct = new Array(MAX_WEEKS + 1).fill(0);
+    const filled = new Array(MAX_WEEKS + 1).fill(false);
+    const mark = (rows, k) => rows.forEach((r) => {
+      ct[k] += rowTotal(r);
+      if(String(r.item || "").trim() !== "" && hasVal(r.qtd)) filled[k] = true;
+    });
+    mark(currentPeriodRows("inicial"), 0);       // estoque inicial do mês
+    mark(currentPeriodRows("final"), nw);        // estoque final do mês (fim da última semana)
+    semRows(p).forEach((r) => {                  // contagens intermediárias
+      const k = parseInt(r.contagem, 10);
+      if(k >= 1 && k <= nw - 1) mark([r], k);
+    });
+    const compras = new Array(MAX_WEEKS + 1).fill(0);
+    currentPeriodRows("entradas").forEach((r) => { compras[weekOfDate(normDate(r.data), p)] += rowTotal(r, "entradas"); });
+
+    const weeks = [];
+    let prefix = 0, run = true, totalCompras = 0;
+    for(let w = 1; w <= nw; w++){
+      const closed = filled[w - 1] && filled[w];
+      const raw = semVenda(p, w);
+      const vendas = hasVal(raw) ? wkNum(raw) : null;
+      const cmv = closed ? ct[w - 1] + compras[w] - ct[w] : null;
+      weeks.push({ w: w, ei: ct[w - 1], ef: ct[w], compras: compras[w], closed: closed, cmv: cmv, vendas: vendas,
+        pct: (closed && vendas > 0) ? cmv / vendas * 100 : null });
+      totalCompras += compras[w];
+      if(run && closed) prefix++; else run = false;
+    }
+
+    // KPI do mês: com estoque inicial E final do mês informados, o CMV é o do mês inteiro
+    // (inicial + compras − final), igual ao da aba "Resultado CMV". Sem o final, mostra o
+    // parcial das semanas já fechadas em sequência.
+    const full = filled[0] && filled[nw];
+    const scope = full ? nw : prefix;
+    const month = { nw: nw, prefix: prefix, scope: scope, status: full ? "fechado" : (prefix > 0 ? "parcial" : "pendente"),
+      ei: null, ef: null, compras: 0, cmv: null, vendas: null, vendasMissing: [], vendasSrc: "", pct: null, margem: null, avg: null };
+    if(scope > 0){
+      month.ei = ct[0];
+      month.ef = ct[scope];
+      for(let w = 1; w <= scope; w++) month.compras += compras[w];
+      month.cmv = month.ei + month.compras - month.ef;
+      month.avg = month.cmv / scope;
+      // vendas: o campo mensal da aba "Resultado CMV" vale para o mês fechado; senão, soma das semanas
+      const legacy = wkNum(getVendasForPeriod(p));
+      let sum = 0;
+      for(let w = 1; w <= scope; w++){ sum += weeks[w - 1].vendas || 0; if(!(weeks[w - 1].vendas > 0)) month.vendasMissing.push(w); }
+      if(full && legacy > 0){ month.vendas = legacy; month.vendasSrc = "mensal"; month.vendasMissing = []; }
+      else if(month.vendasMissing.length === 0){ month.vendas = sum; month.vendasSrc = "semanal"; }
+      else { month.vendas = sum > 0 ? sum : null; month.vendasSrc = "parcial"; }
+      if(month.vendasMissing.length === 0 && month.vendas > 0){
+        month.pct = month.cmv / month.vendas * 100;
+        month.margem = month.vendas - month.cmv;
+      }
+    }
+    return { p: p, nw: nw, ct: ct, filled: filled, compras: compras, weeks: weeks, totalCompras: totalCompras, month: month };
+  }
+
+  // ---------- helpers de tela ----------
+  const wkFmtPct = (n) => n === null || n === undefined ? "—" : n.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
+  function wkSetText(id, txt){ const el = wk$(id); if(el) el.textContent = txt; }
+  function wkSetNeg(id, v){ const el = wk$(id); if(el) el.classList.toggle("neg", v !== null && v < 0); }
+  function wkSetBadge(id, cls, txt){ const el = wk$(id); if(!el) return; el.className = "badge " + cls; el.textContent = txt; }
+
+  function renderWkSkeleton(){
+    const p = wkPeriodo(), nw = numWeeks(p);
+    let html = "";
+    for(let w = 1; w <= nw; w++){
+      html += '<div class="wk-card" id="wk' + w + '">' +
+        '<div class="wk-head"><div><strong>Semana ' + w + '</strong><span class="wk-dates">' + weekLabelLong(p, w) + '</span>' +
+        (weekDays(p, w) < 7 ? '<span class="wk-dates partial">semana parcial · ' + weekDays(p, w) + (weekDays(p, w) === 1 ? " dia" : " dias") + "</span>" : "") +
+        '</div><span class="badge" id="b' + w + '"></span></div>' +
+        '<div class="wk-main"><span class="kpi-label">CMV da semana</span><span class="kpi-big" id="cmv' + w + '">—</span>' +
+        '<div class="wk-pct"><span class="kpi-label">CMV %</span><span class="kpi-pct" id="pct' + w + '">—</span></div>' +
+        '<span class="wk-delta" id="dl' + w + '"></span></div>' +
+        '<dl class="wk-rows">' +
+        '<div><dt>Estoque inicial</dt><dd id="ei' + w + '">—</dd></div>' +
+        '<div><dt>(+) Compras NF</dt><dd id="c' + w + '">—</dd></div>' +
+        '<div><dt>(−) Estoque final</dt><dd id="ef' + w + '">—</dd></div></dl>' +
+        '<label class="wk-vendas"><span class="kpi-label">Vendas (R$)</span>' +
+        '<input type="number" min="0" step="0.01" data-vendas="' + w + '" value="' + esc(semVenda(p, w)) + '" placeholder="0,00"></label></div>';
+    }
+    wk$("weekCards").innerHTML = html;
+    wkSetText("resumoHint", "Semanas de segunda a domingo. A 1ª e a última semana são cortadas no limite do mês, para o CMV fechar no último dia.");
+    wkSetText("monthHint", formatPeriodo(p));
+  }
+
+  function weeklyRefresh(){
+    if(!wk$("weekCards")) return;
+    const c = wkCompute(), m = c.month, p = c.p;
+
+    c.weeks.forEach((x) => {
+      const w = x.w;
+      wkSetText("ei" + w, c.filled[w - 1] ? fmtBRL(x.ei) : "—");
+      wkSetText("c" + w, fmtBRL(x.compras));
+      wkSetText("ef" + w, c.filled[w] ? fmtBRL(x.ef) : "—");
+      wkSetText("cmv" + w, x.closed ? fmtBRL(x.cmv) : "—");
+      wkSetNeg("cmv" + w, x.cmv);
+      wkSetText("pct" + w, wkFmtPct(x.pct));
+      const card = wk$("wk" + w);
+      if(card) card.classList.toggle("closed", x.closed);
+      const dl = wk$("dl" + w);
+      if(dl){
+        const prev = w > 1 ? c.weeks[w - 2] : null;
+        if(prev && x.pct !== null && prev.pct !== null){
+          const d = x.pct - prev.pct;
+          dl.textContent = (d > 0.05 ? "▲ +" : d < -0.05 ? "▼ " : "= ") +
+            d.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " p.p. vs S" + (w - 1);
+          dl.className = "wk-delta " + (d > 0.05 ? "up" : d < -0.05 ? "down" : "");
+        } else { dl.textContent = ""; dl.className = "wk-delta"; }
+      }
+      if(x.closed) wkSetBadge("b" + w, "ok", "Fechada");
+      else {
+        const miss = [];
+        if(!c.filled[w - 1]) miss.push(w - 1 === 0 ? "Inicial" : (w - 1 === c.nw ? "Final" : "Final S" + (w - 1)));
+        if(!c.filled[w]) miss.push(w === c.nw ? "Final do mês" : "Final S" + w);
+        wkSetBadge("b" + w, "wait", "Falta: " + miss.join(" e "));
+      }
+    });
+
+    wkSetText("mei", m.ei === null ? "—" : fmtBRL(m.ei));
+    wkSetText("mclabel", m.scope > 0 ? "(+) Compras (" + rangeLabel(m.scope) + ")" : "(+) Compras");
+    wkSetText("mc", m.scope > 0 ? fmtBRL(m.compras) : "—");
+    wkSetText("meflabel", m.scope > 0 ? "(−) Estoque final (" + (m.scope === c.nw ? "mês" : "S" + m.scope) + ")" : "(−) Estoque final");
+    wkSetText("mef", m.ef === null ? "—" : fmtBRL(m.ef));
+    wkSetText("mcmv", m.cmv === null ? "—" : fmtBRL(m.cmv));
+    wkSetNeg("mcmv", m.cmv);
+    wkSetText("msub", m.status === "fechado" ? "Mês fechado (" + rangeLabel(m.nw) + ")" :
+      (m.status === "parcial" ? "Parcial até S" + m.prefix + " — falta o estoque final do mês" : "Aguardando contagens"));
+    wkSetText("mvlabel", m.scope === 0 ? "Vendas" :
+      (m.vendasSrc === "mensal" ? "Vendas do mês (Resultado CMV)" :
+        (m.vendasMissing.length ? "Vendas (faltam " + m.vendasMissing.map((w) => "S" + w).join(", ") + ")" : "Vendas (" + rangeLabel(m.scope) + ")")));
+    wkSetText("mv", m.vendas > 0 ? fmtBRL(m.vendas) : "—");
+    wkSetText("mpct", wkFmtPct(m.pct));
+    wkSetText("mmargem", m.margem === null ? "—" : fmtBRL(m.margem));
+    wkSetText("mavg", m.avg === null ? "—" : fmtBRL(m.avg));
+    if(m.status === "fechado") wkSetBadge("mbadge", "ok", "Fechado");
+    else if(m.status === "parcial") wkSetBadge("mbadge", "part", "Parcial até S" + m.prefix);
+    else wkSetBadge("mbadge", "wait", "Pendente");
+
+    let li = "";
+    for(let k = 0; k <= c.nw; k++){
+      const ok = c.filled[k];
+      const label = k === 0 ? "Estoque inicial do mês (aba Estoque Inicial)" :
+        (k === c.nw ? "Estoque final do mês (aba Estoque Final)" :
+          "Estoque final da S" + k + " (" + dowOf(p, weekRange(p, k).end) + " " + dm(p, weekRange(p, k).end) + ")");
+      li += '<li class="' + (ok ? "ok" : "") + '"><span class="mark">' + (ok ? "✓" : "") + "</span>" + label + "</li>";
+    }
+    wk$("checklist").innerHTML = li;
+
+    renderSemPills(c);
+    const k = Math.min(wkUi.contagem, Math.max(1, c.nw - 1));
+    wkSetText("semTotal", fmtBRL(c.ct[k]));
+    wkSetText("semTotalLabel", "Total do estoque final da S" + k);
+
+    const bad = !(semOk.sem_estoque && semOk.sem_vendas);
+    ["wkNotice", "semNotice"].forEach((id) => {
+      const el = wk$(id);
+      if(!el) return;
+      el.style.display = bad ? "" : "none";
+      el.textContent = bad ? "⚠ Não foi possível carregar as contagens/vendas semanais da planilha — o que você digitar aqui NÃO está sendo salvo. Clique em “🔄 Atualizar agora” ou recarregue a página." : "";
+    });
+  }
+
+  // ---------- aba "Estoque Semanal" ----------
+  function renderSemPills(c){
+    const p = c.p;
+    let html = "";
+    for(let k = 1; k <= c.nw - 1; k++){
+      html += '<button class="pill' + (wkUi.contagem === k ? " active" : "") + '" data-semk="' + k + '" title="Contagem em ' +
+        dowOf(p, weekRange(p, k).end) + " " + dm(p, weekRange(p, k).end) + '">' +
+        (c.filled[k] ? "✓ " : "") + "Final S" + k + "<small>" + (c.filled[k] ? fmtBRL(c.ct[k]) : "sem contagem") + "</small></button>";
+    }
+    wk$("semPills").innerHTML = html;
+  }
+  function currentSemRows(){
+    return semRows(wkPeriodo()).filter((r) => parseInt(r.contagem, 10) === wkUi.contagem);
+  }
+  function renderSemEstoque(){
+    const p = wkPeriodo(), nw = numWeeks(p);
+    if(wkUi.contagem > nw - 1) wkUi.contagem = Math.max(1, nw - 1);
+    if(wkUi.contagem < 1) wkUi.contagem = 1;
+    const k = wkUi.contagem;
+    wkSetText("semTitle", "Estoque final da Semana " + k);
+    wkSetText("btnSemCopy", k === 1 ? "Copiar itens do Estoque Inicial" : "Copiar itens da contagem anterior");
+    const rows = currentSemRows();
+    const noQty = rows.filter((r) => String(r.item || "").trim() && !hasVal(r.qtd)).length;
+    const hintEl = wk$("semHint");
+    hintEl.className = "note" + (noQty ? " warn" : "");
+    hintEl.textContent = "Contagem física ao fim da Semana " + k + " (" + dowOf(p, weekRange(p, k).end) + " " + dm(p, weekRange(p, k).end) +
+      "). Vale como estoque final da S" + k + " e estoque inicial da S" + (k + 1) + "." +
+      (noQty ? "  ⚠ " + noQty + " item(ns) sem quantidade (considerado 0)." : "");
+    const tb = document.querySelector("#table-semestoque tbody");
+    if(!rows.length){
+      tb.innerHTML = '<tr class="empty-row"><td colspan="6">Nenhum item nesta contagem. Clique em “+ Adicionar item” ou em “' +
+        (k === 1 ? "Copiar itens do Estoque Inicial" : "Copiar itens da contagem anterior") + "”.</td></tr>";
+    } else {
+      tb.innerHTML = rows.map((r) =>
+        '<tr data-id="' + esc(r.id) + '">' +
+        '<td><input type="text" data-field="item" list="itensEstoqueList" autocomplete="off" value="' + esc(r.item) + '" placeholder="Buscar item..."></td>' +
+        '<td><select data-field="categoria">' + categoriaOptions(r.categoria) + "</select></td>" +
+        '<td class="num"><input type="number" min="0" step="0.01" data-field="qtd" value="' + esc(r.qtd) + '" placeholder="0"></td>' +
+        '<td class="num"><input type="number" min="0" step="0.01" data-field="valorUnit" value="' + esc(r.valorUnit) + '" placeholder="0,00"></td>' +
+        '<td class="total-cell">' + fmtBRL(rowTotal(r)) + "</td>" +
+        '<td class="remove-cell"><button class="remove-btn" data-remove title="Remover linha">✕</button></td></tr>').join("");
+    }
+  }
+
+  function weeklyRender(){
+    renderWkSkeleton();
+    renderSemEstoque();
+    weeklyRefresh();
+  }
+
+  // ---------- eventos ----------
+  function semMark(section){
+    semPeriods[section].add(wkPeriodo());
+    scheduleSave(section);
+  }
+
+  wk$("weekCards").addEventListener("input", (e) => {
+    const w = e.target.getAttribute("data-vendas");
+    if(!w) return;
+    setSemVenda(wkPeriodo(), parseInt(w, 10), e.target.value);
+    weeklyRefresh();
+    semMark("sem_vendas");
+  });
+
+  const semTable = wk$("table-semestoque");
+  semTable.addEventListener("input", (e) => {
+    const field = e.target.getAttribute("data-field");
+    if(!field) return;
+    const tr = e.target.closest("tr");
+    const row = state.semEstoque.find((r) => r.id === tr.getAttribute("data-id"));
+    if(!row) return;
+    row[field] = e.target.value;
+    if(field === "item" && Object.prototype.hasOwnProperty.call(ITENS_ESTOQUE, e.target.value)){
+      row.valorUnit = ITENS_ESTOQUE[e.target.value];
+      const vu = tr.querySelector('[data-field="valorUnit"]');
+      if(vu) vu.value = row.valorUnit;
+    }
+    const tc = tr.querySelector(".total-cell");
+    if(tc) tc.textContent = fmtBRL(rowTotal(row));
+    weeklyRefresh();
+    semMark("sem_estoque");
+  });
+  semTable.addEventListener("click", (e) => {
+    if(!e.target.hasAttribute("data-remove")) return;
+    const id = e.target.closest("tr").getAttribute("data-id");
+    state.semEstoque = state.semEstoque.filter((r) => r.id !== id);
+    renderSemEstoque(); weeklyRefresh();
+    semMark("sem_estoque");
+  });
+  wk$("semPills").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-semk]"); if(!b) return;
+    wkUi.contagem = parseInt(b.getAttribute("data-semk"), 10);
+    renderSemEstoque(); weeklyRefresh();
+  });
+  wk$("btnSemAdd").addEventListener("click", () => {
+    const row = { id: uid(), periodo: wkPeriodo(), contagem: wkUi.contagem, item: "", categoria: CATEGORIAS[0], qtd: "", valorUnit: "" };
+    state.semEstoque.push(row);
+    renderSemEstoque(); weeklyRefresh();
+    semMark("sem_estoque");
+    const inp = document.querySelector('#table-semestoque tbody tr[data-id="' + row.id + '"] input[data-field="item"]');
+    if(inp) inp.focus();
+  });
+  wk$("btnSemCopy").addEventListener("click", () => {
+    const p = wkPeriodo(), k = wkUi.contagem;
+    const src = (k === 1 ? currentPeriodRows("inicial") : semRows(p).filter((r) => parseInt(r.contagem, 10) === k - 1))
+      .filter((r) => String(r.item || "").trim());
+    if(!src.length){ alert(k === 1 ? "O Estoque Inicial deste mês ainda não tem itens para copiar." : "A contagem anterior ainda não tem itens para copiar."); return; }
+    const existing = new Set(currentSemRows().map((r) => String(r.item || "").trim().toLowerCase()));
+    state.semEstoque = state.semEstoque.filter((r) => !(normMonth(r.periodo) === p && parseInt(r.contagem, 10) === k && isBlankSem(r)));
+    src.forEach((r) => {
+      if(existing.has(String(r.item).trim().toLowerCase())) return;
+      state.semEstoque.push({ id: uid(), periodo: p, contagem: k, item: r.item, categoria: r.categoria, qtd: "", valorUnit: r.valorUnit });
+    });
+    renderSemEstoque(); weeklyRefresh();
+    semMark("sem_estoque");
+  });
+  wk$("btnSemClear").addEventListener("click", () => {
+    if(!currentSemRows().length) return;
+    if(!confirm("Remover todos os itens desta contagem semanal?")) return;
+    const p = wkPeriodo(), k = wkUi.contagem;
+    state.semEstoque = state.semEstoque.filter((r) => !(normMonth(r.periodo) === p && parseInt(r.contagem, 10) === k));
+    renderSemEstoque(); weeklyRefresh();
+    semMark("sem_estoque");
+  });
+
+  // ---------- exportar CSV ----------
+  function wkDownloadCSV(name, headers, rows){
+    const clean = (v) => {
+      if(typeof v === "number") return '"' + String(Math.round(v * 100) / 100).replace(".", ",") + '"';
+      let s = (v === null || v === undefined) ? "" : String(v);
+      if(/^[=+\-@]/.test(s)) s = "'" + s;
+      return '"' + s.replace(/"/g, '""') + '"';
+    };
+    const csv = [headers.map(clean).join(";")].concat(rows.map((r) => r.map(clean).join(";"))).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  wk$("btnSemExport").addEventListener("click", () => {
+    const p = wkPeriodo();
+    wkDownloadCSV("cmv_estoque_semanal_" + p + ".csv", ["Contagem", "Item", "Categoria", "Qtde", "Valor Unitário", "Valor Total"],
+      semRows(p).filter((r) => !isBlankSem(r)).map((r) => ["Final S" + r.contagem, r.item, r.categoria, wkNum(r.qtd), wkNum(r.valorUnit), rowTotal(r)]));
+  });
+  wk$("btnWkExport").addEventListener("click", () => {
+    const c = wkCompute(), p = c.p, m = c.month;
+    const rows = c.weeks.map((x) => ["Semana " + x.w + " (" + weekLabelLong(p, x.w) + ")",
+      c.filled[x.w - 1] ? x.ei : "", x.compras, c.filled[x.w] ? x.ef : "", x.closed ? x.cmv : "", x.vendas === null ? "" : x.vendas, x.pct === null ? "" : x.pct]);
+    rows.push(["CMV DO MÊS (" + (m.status === "fechado" ? "fechado" : m.status === "parcial" ? "parcial até S" + m.prefix : "pendente") + ")",
+      m.ei === null ? "" : m.ei, m.scope > 0 ? m.compras : "", m.ef === null ? "" : m.ef, m.cmv === null ? "" : m.cmv, m.vendas > 0 ? m.vendas : "", m.pct === null ? "" : m.pct]);
+    wkDownloadCSV("cmv_resumo_semanal_" + p + ".csv", ["Semana", "Estoque inicial", "Compras NF", "Estoque final", "CMV", "Vendas", "CMV %"], rows);
+  });
+
+  // ---------- persistência (mesma trava de segurança do restante do app) ----------
+  async function saveSem(section){
+    if(!loaded[section]){ statusBlocked(); return; }
+    const myVersion = editVersion[section];
+    const periods = Array.from(semPeriods[section]);
+    try{
+      for(const p of periods){
+        const source = section === "sem_estoque" ? state.semEstoque : state.semVendas;
+        const rows = source.filter((r) => normMonth(r.periodo) === p)
+          .filter((r) => section === "sem_estoque" ? !isBlankSem(r) : hasVal(r.vendas));
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ section: section, periodo: p, data: rows })
+        });
+        const json = await res.json();
+        if(json.error) throw new Error(json.error);
+      }
+      if(myVersion === editVersion[section]){ dirty[section] = false; semPeriods[section].clear(); }
+      updateSaveButton();
+      statusSynced();
+    }catch(err){
+      statusError('Não foi possível salvar — verifique sua conexão. Suas alterações continuam na tela; clique em "Salvar agora" para tentar de novo.');
+      console.error("Erro ao salvar seção semanal:", err);
+    }
+  }
+
+  async function loadSem(section){
+    try{
+      const res = await fetch(API_URL + "?section=" + section);
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      const parsed = await res.json();
+      if(parsed.error || !Array.isArray(parsed)) throw new Error(parsed.error || "resposta inesperada");
+      if(section === "sem_estoque"){
+        state.semEstoque = parsed.filter((r) => r && (r.item || r.id))
+          .map((r) => ({ ...r, id: r.id || uid(), contagem: parseInt(r.contagem, 10) || 0, periodo: normMonth(r.periodo) }));
+      } else {
+        state.semVendas = parsed.filter((r) => r && r.periodo)
+          .map((r) => ({ periodo: normMonth(r.periodo), semana: parseInt(r.semana, 10), vendas: r.vendas }));
+      }
+      loaded[section] = true;
+      semOk[section] = true;
+      return true;
+    }catch(err){
+      console.error('Erro ao carregar seção "' + section + '":', err);
+      semOk[section] = false;
+      return false;
+    }
+  }
+  async function loadSemAll(){
+    const r = await Promise.all(SEM_SECTIONS.map(loadSem));
+    return r.every(Boolean);
+  }
+
   async function init(){
     populateItensDatalist();
     if(!isConfigured){
@@ -1080,6 +1732,7 @@
       return;
     }
     const ok = await loadAll();
+    await loadSemAll();
     ensureDefaults();
     renderAll();
     updateSaveButton();
